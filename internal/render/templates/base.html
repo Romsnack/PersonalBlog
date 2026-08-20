@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="{{.Site.Config.Language}}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{if .Title}}{{.Title}} · {{end}}{{.Site.Config.Title}}</title>
+<meta name="description" content="{{.Description}}">
+<link rel="canonical" href="{{absURL .Path}}">
+<link rel="stylesheet" href="{{url "/style.css"}}">
+<link rel="stylesheet" href="{{url "/chroma.css"}}">
+<link rel="alternate" type="application/atom+xml" title="{{.Site.Config.Title}}" href="{{url "/atom.xml"}}">
+<meta property="og:type" content="{{if .Post}}article{{else}}website{{end}}">
+<meta property="og:title" content="{{if .Title}}{{.Title}}{{else}}{{.Site.Config.Title}}{{end}}">
+<meta property="og:description" content="{{.Description}}">
+<meta property="og:url" content="{{absURL .Path}}">
+</head>
+<body>
+<header class="site-header">
+  <a class="wordmark" href="{{url "/"}}">{{.Site.Config.Title}}</a>
+  <nav>
+    <a href="{{url "/"}}">posts</a>
+    <a href="{{url "/tags/"}}">tags</a>
+    {{range .Site.Pages}}<a href="{{url .Path}}">{{.Slug}}</a>{{end}}
+  </nav>
+</header>
+
+<main>
+{{template "content" .}}
+</main>
+
+<footer class="site-footer">
+  <span>© {{year}} {{.Site.Config.Author}} · <a rel="license" href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></span>
+  <a href="{{url "/atom.xml"}}">atom</a>
+</footer>
+{{if .Site.Config.Dev}}<script>new EventSource("/_livereload").onmessage = () => location.reload()</script>{{end}}
+</body>
+</html>

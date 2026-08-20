@@ -1,0 +1,10 @@
+{{define "content"}}
+{{with .Post}}
+<article class="post">
+  <h1>{{.Title}}</h1>
+  <p class="meta"><time datetime="{{rfc3339 .Date}}">{{date .Date}}</time> · {{.ReadingTime}} min{{range .Tags}} · <a class="tag" href="{{url (printf "/tags/%s/" .)}}">#{{.}}</a>{{end}}</p>
+  <div class="prose">{{.HTML}}</div>
+</article>
+{{end}}
+<p class="back"><a href="{{url "/"}}">← all posts</a></p>
+{{end}}

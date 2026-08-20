@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://romsnack.github.io/PersonalBlog/</loc>
+    <lastmod>2026-08-20</lastmod>
+  </url>
+  <url>
+    <loc>https://romsnack.github.io/PersonalBlog/tags/</loc>
+    <lastmod>2026-08-20</lastmod>
+  </url>
+  <url>
+    <loc>https://romsnack.github.io/PersonalBlog/posts/hello-world/</loc>
+    <lastmod>2026-08-20</lastmod>
+  </url>
+  <url>
+    <loc>https://romsnack.github.io/PersonalBlog/about/</loc>
+    <lastmod>2026-08-20</lastmod>
+  </url>
+  <url>
+    <loc>https://romsnack.github.io/PersonalBlog/tags/go/</loc>
+    <lastmod>2026-08-20</lastmod>
+  </url>
+  <url>
+    <loc>https://romsnack.github.io/PersonalBlog/tags/meta/</loc>
+    <lastmod>2026-08-20</lastmod>
+  </url>
+</urlset>

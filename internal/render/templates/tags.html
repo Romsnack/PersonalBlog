@@ -1,0 +1,10 @@
+{{define "content"}}
+<h1>Tags</h1>
+<ul class="tag-cloud">
+{{range .Site.Tags}}
+  <li><a class="tag" href="{{url .Path}}">#{{.Name}}</a> <span class="meta">{{len .Posts}}</span></li>
+{{else}}
+  <li class="empty">No tags yet.</li>
+{{end}}
+</ul>
+{{end}}

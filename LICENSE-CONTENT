@@ -1,0 +1,38 @@
+Creative Commons Attribution 4.0 International (CC BY 4.0)
+
+Copyright (c) 2026 Romsnack
+
+The blog posts and pages in this repository — everything under content/, along
+with any images and other media accompanying them — are licensed under the
+Creative Commons Attribution 4.0 International License.
+
+You are free to:
+
+  Share — copy and redistribute the material in any medium or format
+  Adapt  — remix, transform, and build upon the material
+
+for any purpose, even commercially, under the following terms:
+
+  Attribution — You must give appropriate credit, provide a link to the
+  license, and indicate if changes were made. You may do so in any reasonable
+  manner, but not in any way that suggests the licensor endorses you or your
+  use.
+
+  No additional restrictions — You may not apply legal terms or technological
+  measures that legally restrict others from doing anything the license
+  permits.
+
+A suggested attribution:
+
+  "<Post title>" by Romsnack, licensed under CC BY 4.0.
+  Originally published at https://romsnack.dev/posts/<slug>/
+
+Summary of the license:
+  https://creativecommons.org/licenses/by/4.0/
+
+Full legal text:
+  https://creativecommons.org/licenses/by/4.0/legalcode
+
+This license covers the writing only. The site generator and all other source
+code in this repository are licensed separately under the MIT License; see the
+LICENSE file.

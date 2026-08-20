@@ -1,0 +1,9 @@
+# Site-wide settings.
+#
+# When romsnack.dev is registered, change baseURL to https://romsnack.dev and
+# create static/CNAME containing that domain. Nothing else needs to change.
+title: romsnack
+author: Romsnack
+description: Notes on AppSec, DevSecOps, and what I learn along the way.
+baseURL: https://romsnack.github.io/PersonalBlog
+language: en

@@ -1,0 +1,16 @@
+{{define "content"}}
+<h1 class="site-title">{{.Site.Config.Title}}<span class="cursor" aria-hidden="true"></span></h1>
+{{with .Site.Config.Description}}<p class="lede">{{.}}</p>{{end}}
+
+<ul class="post-list">
+{{range .Posts}}
+  <li class="post-item">
+    <a class="post-link" href="{{url .Path}}"><span class="glyph" aria-hidden="true">▸</span>{{.Title}}</a>
+    <p class="meta"><time datetime="{{rfc3339 .Date}}">{{date .Date}}</time> · {{.ReadingTime}} min{{range .Tags}} · <a class="tag" href="{{url (printf "/tags/%s/" .)}}">#{{.}}</a>{{end}}</p>
+    {{with .Summary}}<p class="summary">{{.}}</p>{{end}}
+  </li>
+{{else}}
+  <li class="empty">No posts yet.</li>
+{{end}}
+</ul>
+{{end}}
