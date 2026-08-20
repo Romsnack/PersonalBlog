@@ -13,6 +13,15 @@
 <meta property="og:title" content="{{if .Title}}{{.Title}}{{else}}{{.Site.Config.Title}}{{end}}">
 <meta property="og:description" content="{{.Description}}">
 <meta property="og:url" content="{{absURL .Path}}">
+<script>
+// Runs before first paint so a light-theme reader never sees a dark flash.
+// Adding .js here also reveals the toggle, which is useless without scripting.
+(function () {
+  var d = document.documentElement;
+  d.classList.add("js");
+  try { var t = localStorage.getItem("theme"); if (t === "light") d.dataset.theme = t; } catch (e) {}
+})();
+</script>
 </head>
 <body>
 <header class="site-header">
@@ -21,6 +30,9 @@
     <a href="{{url "/"}}">posts</a>
     <a href="{{url "/tags/"}}">tags</a>
     {{range .Site.Pages}}<a href="{{url .Path}}">{{.Slug}}</a>{{end}}
+    <button class="theme-toggle" type="button" aria-label="Switch to light theme">
+      <span class="bracket">[</span><span class="theme-name">dark</span><span class="bracket">]</span>
+    </button>
   </nav>
 </header>
 
@@ -32,6 +44,28 @@
   <span>© {{year}} {{.Site.Config.Author}} · <a rel="license" href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></span>
   <a href="{{url "/atom.xml"}}">atom</a>
 </footer>
+<script>
+(function () {
+  var d = document.documentElement;
+  var btn = document.querySelector(".theme-toggle");
+  var name = btn.querySelector(".theme-name");
+
+  function paint() {
+    var light = d.dataset.theme === "light";
+    name.textContent = light ? "light" : "dark";
+    btn.setAttribute("aria-label", "Switch to " + (light ? "dark" : "light") + " theme");
+  }
+
+  btn.addEventListener("click", function () {
+    var light = d.dataset.theme !== "light";
+    if (light) { d.dataset.theme = "light"; } else { delete d.dataset.theme; }
+    try { localStorage.setItem("theme", light ? "light" : "dark"); } catch (e) {}
+    paint();
+  });
+
+  paint();
+})();
+</script>
 {{if .Site.Config.Dev}}<script>new EventSource("/_livereload").onmessage = () => location.reload()</script>{{end}}
 </body>
 </html>

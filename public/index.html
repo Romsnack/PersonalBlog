@@ -6,21 +6,33 @@
 <title>romsnack</title>
 <meta name="description" content="Notes on AppSec, DevSecOps, and what I learn along the way.">
 <link rel="canonical" href="https://romsnack.github.io/PersonalBlog/">
-<link rel="stylesheet" href="/PersonalBlog/style.css">
-<link rel="stylesheet" href="/PersonalBlog/chroma.css">
-<link rel="alternate" type="application/atom+xml" title="romsnack" href="/PersonalBlog/atom.xml">
+<link rel="stylesheet" href="/style.css">
+<link rel="stylesheet" href="/chroma.css">
+<link rel="alternate" type="application/atom+xml" title="romsnack" href="/atom.xml">
 <meta property="og:type" content="website">
 <meta property="og:title" content="romsnack">
 <meta property="og:description" content="Notes on AppSec, DevSecOps, and what I learn along the way.">
 <meta property="og:url" content="https://romsnack.github.io/PersonalBlog/">
+<script>
+
+
+(function () {
+  var d = document.documentElement;
+  d.classList.add("js");
+  try { var t = localStorage.getItem("theme"); if (t === "light") d.dataset.theme = t; } catch (e) {}
+})();
+</script>
 </head>
 <body>
 <header class="site-header">
-  <a class="wordmark" href="/PersonalBlog/">romsnack</a>
+  <a class="wordmark" href="/">romsnack</a>
   <nav>
-    <a href="/PersonalBlog/">posts</a>
-    <a href="/PersonalBlog/tags/">tags</a>
-    <a href="/PersonalBlog/about/">about</a>
+    <a href="/">posts</a>
+    <a href="/tags/">tags</a>
+    <a href="/about/">about</a>
+    <button class="theme-toggle" type="button" aria-label="Switch to light theme">
+      <span class="bracket">[</span><span class="theme-name">dark</span><span class="bracket">]</span>
+    </button>
   </nav>
 </header>
 
@@ -32,8 +44,8 @@
 <ul class="post-list">
 
   <li class="post-item">
-    <a class="post-link" href="/PersonalBlog/posts/hello-world/"><span class="glyph" aria-hidden="true">▸</span>Writing a static site generator in Go</a>
-    <p class="meta"><time datetime="2026-08-20T00:00:00Z">2026-08-20</time> · 1 min · <a class="tag" href="/PersonalBlog/tags/go/">#go</a> · <a class="tag" href="/PersonalBlog/tags/meta/">#meta</a></p>
+    <a class="post-link" href="/posts/hello-world/"><span class="glyph" aria-hidden="true">▸</span>Writing a static site generator in Go</a>
+    <p class="meta"><time datetime="2026-08-20T00:00:00Z">2026-08-20</time> · 1 min · <a class="tag" href="/tags/go/">#go</a> · <a class="tag" href="/tags/meta/">#meta</a></p>
     <p class="summary">Why this blog is 600 lines of Go instead of a Hugo theme, and how the pipeline fits together.</p>
   </li>
 
@@ -43,8 +55,30 @@
 
 <footer class="site-footer">
   <span>© 2026 Romsnack · <a rel="license" href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></span>
-  <a href="/PersonalBlog/atom.xml">atom</a>
+  <a href="/atom.xml">atom</a>
 </footer>
+<script>
+(function () {
+  var d = document.documentElement;
+  var btn = document.querySelector(".theme-toggle");
+  var name = btn.querySelector(".theme-name");
 
+  function paint() {
+    var light = d.dataset.theme === "light";
+    name.textContent = light ? "light" : "dark";
+    btn.setAttribute("aria-label", "Switch to " + (light ? "dark" : "light") + " theme");
+  }
+
+  btn.addEventListener("click", function () {
+    var light = d.dataset.theme !== "light";
+    if (light) { d.dataset.theme = "light"; } else { delete d.dataset.theme; }
+    try { localStorage.setItem("theme", light ? "light" : "dark"); } catch (e) {}
+    paint();
+  });
+
+  paint();
+})();
+</script>
+<script>new EventSource("/_livereload").onmessage = () => location.reload()</script>
 </body>
 </html>

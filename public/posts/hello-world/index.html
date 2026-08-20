@@ -6,21 +6,33 @@
 <title>Writing a static site generator in Go · romsnack</title>
 <meta name="description" content="Why this blog is 600 lines of Go instead of a Hugo theme, and how the pipeline fits together.">
 <link rel="canonical" href="https://romsnack.github.io/PersonalBlog/posts/hello-world/">
-<link rel="stylesheet" href="/PersonalBlog/style.css">
-<link rel="stylesheet" href="/PersonalBlog/chroma.css">
-<link rel="alternate" type="application/atom+xml" title="romsnack" href="/PersonalBlog/atom.xml">
+<link rel="stylesheet" href="/style.css">
+<link rel="stylesheet" href="/chroma.css">
+<link rel="alternate" type="application/atom+xml" title="romsnack" href="/atom.xml">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Writing a static site generator in Go">
 <meta property="og:description" content="Why this blog is 600 lines of Go instead of a Hugo theme, and how the pipeline fits together.">
 <meta property="og:url" content="https://romsnack.github.io/PersonalBlog/posts/hello-world/">
+<script>
+
+
+(function () {
+  var d = document.documentElement;
+  d.classList.add("js");
+  try { var t = localStorage.getItem("theme"); if (t === "light") d.dataset.theme = t; } catch (e) {}
+})();
+</script>
 </head>
 <body>
 <header class="site-header">
-  <a class="wordmark" href="/PersonalBlog/">romsnack</a>
+  <a class="wordmark" href="/">romsnack</a>
   <nav>
-    <a href="/PersonalBlog/">posts</a>
-    <a href="/PersonalBlog/tags/">tags</a>
-    <a href="/PersonalBlog/about/">about</a>
+    <a href="/">posts</a>
+    <a href="/tags/">tags</a>
+    <a href="/about/">about</a>
+    <button class="theme-toggle" type="button" aria-label="Switch to light theme">
+      <span class="bracket">[</span><span class="theme-name">dark</span><span class="bracket">]</span>
+    </button>
   </nav>
 </header>
 
@@ -29,7 +41,7 @@
 
 <article class="post">
   <h1>Writing a static site generator in Go</h1>
-  <p class="meta"><time datetime="2026-08-20T00:00:00Z">2026-08-20</time> · 1 min · <a class="tag" href="/PersonalBlog/tags/go/">#go</a> · <a class="tag" href="/PersonalBlog/tags/meta/">#meta</a></p>
+  <p class="meta"><time datetime="2026-08-20T00:00:00Z">2026-08-20</time> · 1 min · <a class="tag" href="/tags/go/">#go</a> · <a class="tag" href="/tags/meta/">#meta</a></p>
   <div class="prose"><p>GitHub Pages serves static files and nothing else, so Go can&rsquo;t run when someone
 loads a page. That turns out to be freeing rather than limiting: Go runs at
 <strong>build time</strong>, and what it produces is plain HTML that any host on earth can
@@ -88,14 +100,36 @@ behind a dev flag so it never appears in a production build.</p>
 </div>
 </article>
 
-<p class="back"><a href="/PersonalBlog/">← all posts</a></p>
+<p class="back"><a href="/">← all posts</a></p>
 
 </main>
 
 <footer class="site-footer">
   <span>© 2026 Romsnack · <a rel="license" href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></span>
-  <a href="/PersonalBlog/atom.xml">atom</a>
+  <a href="/atom.xml">atom</a>
 </footer>
+<script>
+(function () {
+  var d = document.documentElement;
+  var btn = document.querySelector(".theme-toggle");
+  var name = btn.querySelector(".theme-name");
 
+  function paint() {
+    var light = d.dataset.theme === "light";
+    name.textContent = light ? "light" : "dark";
+    btn.setAttribute("aria-label", "Switch to " + (light ? "dark" : "light") + " theme");
+  }
+
+  btn.addEventListener("click", function () {
+    var light = d.dataset.theme !== "light";
+    if (light) { d.dataset.theme = "light"; } else { delete d.dataset.theme; }
+    try { localStorage.setItem("theme", light ? "light" : "dark"); } catch (e) {}
+    paint();
+  });
+
+  paint();
+})();
+</script>
+<script>new EventSource("/_livereload").onmessage = () => location.reload()</script>
 </body>
 </html>

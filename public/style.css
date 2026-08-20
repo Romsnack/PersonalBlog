@@ -21,17 +21,23 @@
   --measure: 46rem;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    --ground:   #fffdf9;
-    --raised:   #f4f1ea;
-    --line:     #e0dcd2;
-    --text:     #24292f;
-    --muted:    #616b74;
-    --accent:   #1a7f37;
-    --accent-dim: #4a8f52;
-  }
+/* Dark is the default, unconditionally — the system preference is deliberately
+   not consulted, so the site looks the same to everyone until they choose.
+   The toggle in the header sets data-theme on <html> and remembers it. */
+:root[data-theme="light"] {
+  --ground:   #fffdf9;
+  --raised:   #f4f1ea;
+  --line:     #e0dcd2;
+  --text:     #24292f;
+  --muted:    #616b74;
+  --accent:   #1a7f37;
+  --accent-dim: #4a8f52;
 }
+
+/* Form controls don't inherit the page's scheme on their own; this keeps
+   scrollbars and focus rings consistent with the palette. */
+:root { color-scheme: dark; }
+:root[data-theme="light"] { color-scheme: light; }
 
 *, *::before, *::after { box-sizing: border-box; }
 
@@ -79,9 +85,25 @@ a:hover { text-decoration-thickness: 2px; }
 .wordmark { color: var(--text); text-decoration: none; font-weight: 600; }
 .wordmark:hover { color: var(--accent); }
 
-.site-header nav { display: flex; gap: 1.25rem; }
+.site-header nav { display: flex; align-items: baseline; gap: 1.25rem; }
 .site-header nav a { color: var(--muted); text-decoration: none; }
 .site-header nav a:hover { color: var(--accent); }
+
+/* Theme toggle: a nav item that happens to be a button, so it reads as part of
+   the same row rather than as chrome bolted on. Hidden without JS, where it
+   would do nothing. */
+.theme-toggle {
+  display: none;
+  font: inherit;
+  color: var(--muted);
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+.theme-toggle:hover { color: var(--accent); }
+.theme-toggle .bracket { color: var(--accent-dim); }
+.js .theme-toggle { display: inline; }
 
 /* --- headings ------------------------------------------------------------ */
 
