@@ -85,8 +85,11 @@ The workflows have write access to a token and are therefore treated as code:
   Dependabot proposes the bumps as reviewable PRs.
 - **Go tooling is installed with `go install tool@vX.Y.Z`** rather than through
   third-party actions. The module proxy and checksum database verify each
-  download, and it keeps the set of actions to trust down to `checkout` and
-  `setup-go`.
+  download, and it keeps the set of actions to trust small. The one exception
+  is golangci-lint, which needs a newer Go to compile than the one the project
+  builds with; it comes from its official action, SHA-pinned like the rest, in
+  the mode that downloads a checksum-verified prebuilt binary rather than
+  building from source.
 - **`GITHUB_TOKEN` is read-only by default.** Jobs widen it themselves, so the
   Pages and OIDC write scopes exist only in the job that deploys.
 - **`persist-credentials: false` on every checkout**, so the token is never left
