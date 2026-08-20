@@ -1,0 +1,13 @@
+# Keeps the SHA-pinned actions in .github/workflows/ from going stale: pinning
+# stops silent retags, and this proposes the updates as reviewable PRs.
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "gomod"
+    directory: "/"
+    schedule:
+      interval: "weekly"
