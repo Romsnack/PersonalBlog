@@ -1,0 +1,51 @@
+# golangci-lint v2 configuration.
+#
+# The linter set is deliberately small and all-signal: this is a ~700 line
+# static site generator, not a service, so the goal is catching real mistakes
+# rather than enforcing a house style nobody agreed to.
+version: "2"
+
+linters:
+  # The standard set is errcheck, govet, ineffassign, staticcheck and unused.
+  default: standard
+  enable:
+    - bodyclose      # HTTP response bodies closed (the preview server)
+    - errorlint      # %w vs %v, and errors.Is/As over ==
+    - gocritic       # broad correctness and style diagnostics
+    - misspell       # typos in comments and strings
+    - nilerr         # returning nil when err is non-nil
+    - noctx          # HTTP requests without a context
+    - revive         # golint's successor, for exported-symbol docs
+    - rowserrcheck   # cheap to keep on if a database ever appears
+    - unconvert      # redundant type conversions
+    - unparam        # parameters that are always the same value
+    - usetesting     # prefer t.TempDir/t.Setenv in tests
+
+  settings:
+    errcheck:
+      # Deferred Close on a read-only file has nothing useful to report.
+      exclude-functions:
+        - (io.Closer).Close
+    revive:
+      rules:
+        - name: exported
+          # Report exported symbols missing a doc comment, but do not demand
+          # the "X ..." prefix form on every one of them.
+          arguments: [checkPrivateReceivers, disableStutteringCheck]
+
+  exclusions:
+    # Presets drop the noisiest well-known false positives.
+    presets:
+      - comments
+      - std-error-handling
+    rules:
+      # Table-driven tests read better with some duplication.
+      - path: _test\.go
+        linters:
+          - gocritic
+          - unparam
+
+formatters:
+  enable:
+    - gofmt
+    - goimports

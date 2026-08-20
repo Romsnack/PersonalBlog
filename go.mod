@@ -14,5 +14,5 @@ require (
 require (
 	github.com/BurntSushi/toml v1.5.0 // indirect
 	github.com/dlclark/regexp2/v2 v2.2.1 // indirect
-	golang.org/x/sys v0.13.0 // indirect
+	golang.org/x/sys v0.44.0 // indirect
 )

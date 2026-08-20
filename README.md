@@ -47,9 +47,56 @@ automatically.
 | `internal/serve` | preview server, file watcher, SSE live reload |
 | `static/` | copied verbatim into the output |
 | `public/` | build output (gitignored) |
+| `.golangci.yml` | linter selection and exclusions |
+| `.github/workflows/` | CI, security and deploy pipelines |
 
 The pipeline runs in one direction — parse, model, write — and every build is a
 full rebuild, so there is no cache to invalidate.
+
+## Checks
+
+Three workflows run on every push and pull request. Everything they do can be
+run locally:
+
+```sh
+gofmt -l .                  # formatting
+go vet ./...                # the standard vet suite
+golangci-lint run ./...     # the linters in .golangci.yml
+go test -race ./...         # unit tests
+govulncheck ./...           # known CVEs, call-graph aware
+gosec ./...                 # static analysis for insecure patterns
+gitleaks dir .              # committed credentials
+zizmor .github/workflows/   # the workflows' own security
+```
+
+`Security` also runs weekly on a schedule, because the vulnerability and secret
+rule sets change without this repository changing — a commit that was clean in
+August can be vulnerable in September.
+
+### How the pipelines are hardened
+
+The workflows have write access to a token and are therefore treated as code:
+
+- **Runner images are pinned** to `ubuntu-24.04`, never `ubuntu-latest`, so a
+  GitHub image roll cannot change what runs.
+- **Actions are pinned to full commit SHAs**, never tags. A tag is a mutable
+  pointer; a maintainer or an attacker who compromises the account can repoint
+  `v4` at new code, and every workflow using it picks that up silently.
+  Dependabot proposes the bumps as reviewable PRs.
+- **Go tooling is installed with `go install tool@vX.Y.Z`** rather than through
+  third-party actions. The module proxy and checksum database verify each
+  download, and it keeps the set of actions to trust down to `checkout` and
+  `setup-go`.
+- **`GITHUB_TOKEN` is read-only by default.** Jobs widen it themselves, so the
+  Pages and OIDC write scopes exist only in the job that deploys.
+- **`persist-credentials: false` on every checkout**, so the token is never left
+  in `.git/config` for a later step to pick up.
+- **No secrets.** Nothing here needs one: Pages authenticates with a short-lived
+  OIDC token minted per deployment.
+
+CI builds with the newest 1.25 patch release rather than the exact version in
+`go.mod`, whose `go` directive is a minimum language version rather than a build
+pin. Standard-library security fixes therefore land without a commit.
 
 ## Deployment
 

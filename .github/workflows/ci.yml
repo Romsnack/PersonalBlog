@@ -1,0 +1,100 @@
+# Lint and test on every push and pull request.
+#
+# Supply-chain rules for every workflow in this repo:
+#   * runner images are pinned (ubuntu-24.04, never ubuntu-latest)
+#   * every third-party action is pinned to a full commit SHA, never a tag,
+#     because tags are mutable and can be repointed at new code
+#   * Go tooling is installed with `go install tool@vX.Y.Z`, so the module
+#     proxy and the checksum database verify it and there is no extra action
+#     to trust
+#   * GITHUB_TOKEN is read-only by default and widened per job, never globally
+#   * checkout never leaves credentials behind in .git/config
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# Least privilege by default. No job here needs more than reading the repo.
+permissions:
+  contents: read
+
+# A superseded push has nothing worth finishing, so cancel the older run.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # go.mod's `go` directive is a minimum language version, not a build pin.
+  # CI builds with the newest 1.25 patch so that security fixes in the standard
+  # library land here without a commit.
+  GO_VERSION: "1.25.x"
+  GOLANGCI_LINT_VERSION: "v2.13.0"
+  ACTIONLINT_VERSION: "v1.7.12"
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          check-latest: true
+          cache: true
+
+      # gofmt has no exit code of its own: it lists offending files instead.
+      - name: gofmt
+        run: |
+          unformatted="$(gofmt -l .)"
+          if [ -n "$unformatted" ]; then
+            echo "::error::these files are not gofmt-clean:"
+            echo "$unformatted"
+            exit 1
+          fi
+
+      - name: go vet
+        run: go vet ./...
+
+      - name: golangci-lint
+        run: |
+          go install "github.com/golangci/golangci-lint/v2/cmd/golangci-lint@${GOLANGCI_LINT_VERSION}"
+          golangci-lint run ./...
+
+      # Catches typos and invalid expressions in these workflow files, which
+      # otherwise only surface as a broken run on main.
+      - name: actionlint
+        run: |
+          go install "github.com/rhysd/actionlint/cmd/actionlint@${ACTIONLINT_VERSION}"
+          actionlint
+
+  test:
+    name: Test
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          check-latest: true
+          cache: true
+
+      - name: Test
+        run: go test -race -coverprofile=coverage.out -covermode=atomic ./...
+
+      - name: Coverage summary
+        run: go tool cover -func=coverage.out | tail -1 >> "$GITHUB_STEP_SUMMARY"
+
+      # The build is the real integration test: it parses every post in
+      # content/ and renders the whole site.
+      - name: Build the site
+        run: go run . build

@@ -8,12 +8,11 @@ on:
     branches: [main]
   workflow_dispatch:
 
-# GITHUB_TOKEN needs to read the repo, mint an OIDC token for the deployment,
-# and write the Pages artifact.
+# Least privilege: the default token can only read the repo. The two jobs
+# widen it themselves, so the Pages and OIDC write scopes exist only in the
+# job that actually deploys rather than for every step in the workflow.
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 # Let a running deploy finish rather than cancelling it midway.
 concurrency:
@@ -27,8 +26,15 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      pages: read # configure-pages reads the site's Pages settings
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # The build never pushes, so leaving the token in .git/config would
+          # only widen the blast radius of a compromised build step.
+          persist-credentials: false
 
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
@@ -47,6 +53,9 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-24.04
+    permissions:
+      pages: write # publish the artifact to Pages
+      id-token: write # mint the OIDC token deploy-pages authenticates with
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

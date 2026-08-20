@@ -1,0 +1,147 @@
+# Security checks: known vulnerabilities, static analysis, leaked secrets and
+# the security of these workflows themselves.
+#
+# The same supply-chain rules as ci.yml apply — see the header there.
+#
+# This runs on a schedule as well as on push, because three of the four checks
+# depend on data that changes without this repository changing: the Go
+# vulnerability database, the gosec rule set and the gitleaks rule set. A commit
+# that was clean in August can be vulnerable in September.
+name: Security
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # Mondays, 06:17 UTC. An odd minute avoids the top-of-hour stampede that
+    # makes GitHub drop scheduled runs.
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  GO_VERSION: "1.25.x"
+  GOVULNCHECK_VERSION: "v1.1.4"
+  GOSEC_VERSION: "v2.28.0"
+  GITLEAKS_VERSION: "v8.30.1"
+  ZIZMOR_VERSION: "1.29.0"
+
+jobs:
+  # Known CVEs in dependencies and in the standard library. govulncheck is
+  # call-graph aware: it only reports a vulnerability when the vulnerable
+  # function is actually reachable from this code, so a finding here is real
+  # rather than "a package you import has a CVE somewhere in it".
+  vulnerabilities:
+    name: Known vulnerabilities
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          check-latest: true
+          cache: true
+
+      - name: govulncheck
+        run: |
+          go install "golang.org/x/vuln/cmd/govulncheck@${GOVULNCHECK_VERSION}"
+          govulncheck ./...
+
+  # Static analysis for insecure code patterns.
+  sast:
+    name: Static analysis
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          check-latest: true
+          cache: true
+
+      # The excluded rules are the ones a static site generator triggers by
+      # doing its job, and suppressing them keeps the signal worth reading:
+      #
+      #   G104  unchecked Close() on the fsnotify watcher during shutdown
+      #   G114  the preview server has no timeouts on purpose — a WriteTimeout
+      #         would sever the live-reload EventSource stream, and it binds
+      #         localhost in `serve` only
+      #   G122  writing inside a filepath.WalkDir callback — that is how
+      #         static/ is copied
+      #   G203  template.HTML on our own rendered Markdown, which is the
+      #         documented reason html.WithUnsafe() is set
+      #   G301  0755 on generated directories — a web server must traverse them
+      #   G304  opening a file whose path is a variable — reading content/ by
+      #         computed path is the entire purpose of the program
+      #   G306  0644 on generated files — this output is public by definition
+      #
+      # Everything else stays on, including the categories that matter most
+      # here: G101 hardcoded credentials, G201/G202 SQL injection, G204 command
+      # injection and the G4xx/G5xx weak-crypto rules.
+      - name: gosec
+        run: |
+          go install "github.com/securego/gosec/v2/cmd/gosec@${GOSEC_VERSION}"
+          gosec -exclude=G104,G114,G122,G203,G301,G304,G306 ./...
+
+  # Credentials committed to the repository, in the working tree and in every
+  # commit reachable from it.
+  secrets:
+    name: Secret scanning
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # Full history: a secret that was committed and then "removed" in a
+          # later commit is still in the objects, exactly like a deleted file
+          # is still in a container layer.
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          check-latest: true
+          cache: true
+
+      # The module path is still the pre-rename zricethezav one.
+      - name: Install gitleaks
+        run: go install "github.com/zricethezav/gitleaks/v8@${GITLEAKS_VERSION}"
+
+      - name: Scan the working tree
+        run: gitleaks dir . --redact --verbose --no-banner
+
+      - name: Scan the full history
+        run: gitleaks git . --redact --verbose --no-banner
+
+  # The workflows themselves are code with access to a token, so they get
+  # audited too. zizmor catches template-injection sinks, unpinned actions,
+  # over-broad permissions and credential persistence.
+  workflows:
+    name: Workflow audit
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: zizmor
+        env:
+          # Lets zizmor resolve whether a referenced action is pinned to a real
+          # commit. Read-only, and the default token for this workflow.
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          pipx install "zizmor==${ZIZMOR_VERSION}"
+          zizmor --persona=regular --min-severity=low .github/workflows/
