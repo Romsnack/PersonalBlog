@@ -42,7 +42,10 @@
 
 <footer class="site-footer">
   <span>© {{year}} {{.Site.Config.Author}} · <a rel="license" href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></span>
-  <a href="{{url "/atom.xml"}}">atom</a>
+  <nav class="footer-links">
+    {{range .Site.Config.Links}}<a href="{{.URL}}" rel="me">{{.Name}}</a>
+    {{end}}<a href="{{url "/atom.xml"}}">atom</a>
+  </nav>
 </footer>
 <script>
 (function () {

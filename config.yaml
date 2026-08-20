@@ -2,8 +2,18 @@
 #
 # When romsnack.dev is registered, change baseURL to https://romsnack.dev and
 # create static/CNAME containing that domain. Nothing else needs to change.
-title: romsnack
+title: Romsnack
 author: Romsnack
-description: Notes on AppSec, DevSecOps, and what I learn along the way.
+description: Notes on DevSecOps, AppSec and security as a broad.
+# Shown under the wordmark in the header, on every page.
+tagline: DevSecOps is a mindset, not a job title.
 baseURL: https://romsnack.github.io/PersonalBlog
 language: en
+
+# External profiles, shown in the footer. Add or reorder freely; the footer
+# renders whatever is listed here.
+links:
+  - name: linkedin
+    url: https://www.linkedin.com/in/romaingrondin/
+  - name: root-me
+    url: https://www.root-me.org/Romsnack-665768?lang=fr#37d592ccd6e1a0897174d9ce32f3eba0

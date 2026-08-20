@@ -10,14 +10,23 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// Link is an external profile rendered in the site footer. Name is the visible
+// label, lowercased by convention to match the rest of the chrome.
+type Link struct {
+	Name string `yaml:"name"`
+	URL  string `yaml:"url"`
+}
+
 // Config holds everything the templates and generators need to know about the
 // site as a whole. Per-post data lives in content.Post instead.
 type Config struct {
 	Title       string `yaml:"title"`
 	Author      string `yaml:"author"`
 	Description string `yaml:"description"`
+	Tagline     string `yaml:"tagline"`
 	BaseURL     string `yaml:"baseURL"`
 	Language    string `yaml:"language"`
+	Links       []Link `yaml:"links"`
 
 	// BasePath is the path component of BaseURL ("/PersonalBlog" on a GitHub
 	// project page, "" on a custom domain). Derived, not read from YAML.

@@ -89,6 +89,12 @@ a:hover { text-decoration-thickness: 2px; }
 .site-header nav a { color: var(--muted); text-decoration: none; }
 .site-header nav a:hover { color: var(--accent); }
 
+/* Footer links read as one quiet row, like the header nav, so the profile
+   links do not compete with the post content above them. */
+.footer-links { display: flex; align-items: baseline; gap: 1.25rem; }
+.footer-links a { color: var(--muted); text-decoration: none; }
+.footer-links a:hover { color: var(--accent); }
+
 /* Theme toggle: a nav item that happens to be a button, so it reads as part of
    the same row rather than as chrome bolted on. Hidden without JS, where it
    would do nothing. */
@@ -118,6 +124,7 @@ h1 { font-size: 1.75rem; margin-top: 0; }
 h2 { font-size: 1.25rem; }
 h3 { font-size: 1.0625rem; }
 
+/* The homepage hero: the tagline, set in heading type with the prompt cursor. */
 .site-title { display: flex; align-items: center; gap: 0.15em; }
 
 .cursor {
