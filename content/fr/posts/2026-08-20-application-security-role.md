@@ -7,9 +7,9 @@ translationKey: application-security-role
 slug: appsec-tout-ce-qui-vient-apres
 ---
 
-Le métier est facile à mal décrire. « Ingénieur Application Security : lance des
-outils de sécurité sur le code. » Cette description est techniquement vraie et
-totalement inutile, exactement comme « pompier : manie une lance ».
+Il est facile de mal décrire ce métier. « Ingénieur Application Security :
+lance des outils de sécurité sur le code. » La description est techniquement
+vraie et totalement inutile, au même titre que « pompier : manie une lance ».
 
 Acheter des scanners, c'est un bon de commande. Transformer leurs sorties en
 code corrigé, dans une base de code qui ne vous appartient pas, écrite par des
@@ -25,12 +25,12 @@ dépôt.
 ## Où l'AppSec intervient dans le cycle de développement
 
 Pas partout à la fois, et pas avec le même poids. Le coût d'une correction
-augmente à chaque étape qu'elle survit, donc l'effort est délibérément placé le
-plus tôt possible :
+augmente à chaque étape qu'elle franchit sans être détectée : l'effort est donc
+délibérément concentré le plus en amont possible :
 
 | Étape | Ce que fait l'AppSec | Outillage typique |
 | --- | --- | --- |
-| Conception | Modélisation des menaces, frontières d'authentification, « par où entre la donnée non fiable » | Tableau blanc, STRIDE, une vraie conversation |
+| Conception | Modélisation des menaces, périmètres d'authentification, « par où entre la donnée non fiable » | Tableau blanc, STRIDE, une vraie conversation |
 | Code | Analyse statique, détection de secrets, revue des dépendances sur la pull request | SAST, scanners de secrets, SCA |
 | Build | Durcissement du pipeline, provenance des artefacts, scan d'images | SLSA/attestations, scanners de conteneurs, `zizmor` |
 | Déploiement | Revue de l'infrastructure-as-code, dérive de configuration, surface exposée | Scanners IaC, policy-as-code |
@@ -96,9 +96,9 @@ généralisent pas.**
 Chaque catégorie ci-dessous mérite d'exister. Chacune a un angle mort qui
 détermine la façon dont vous devez lire ses sorties.
 
-**SAST** — analyse statique, lit le code sans l'exécuter. Bon en suivi de
-teintes : une entrée utilisateur qui atteint une chaîne SQL, un appel shell, un
-désérialiseur. Aveugle à tout ce qui dépend de l'état d'exécution. Il ne sait
+**SAST** — analyse statique, lit le code sans l'exécuter. Doué pour remonter le
+parcours d'une donnée non fiable : une entrée utilisateur qui atteint une chaîne
+SQL, un appel shell, un désérialiseur. Aveugle à tout ce qui dépend de l'état d'exécution. Il ne sait
 pas que l'endpoint est derrière une passerelle réservée aux administrateurs, il
 signalera donc la même injection dans un handler public et dans un script de
 migration interne avec une criticité identique. Son taux de faux positifs est à
@@ -119,7 +119,7 @@ secret représente 10 % du travail : le constat est une *fuite*, pas un *bug*, e
 le correctif est une rotation, pas un commit. Une clé retirée du code et laissée
 valide en production, c'est un ticket fermé et un risque intact.
 
-**DAST** — tests dynamiques contre une instance en cours d'exécution. Il voit ce
+**DAST** — tests dynamiques sur une instance en cours d'exécution. Il voit ce
 qui répond réellement sur le réseau, ce qui en fait le seul outil de la liste
 capable de confirmer l'exploitabilité plutôt que de la déduire. En contrepartie
 il est lent, exige un vrai environnement avec une vraie authentification, et
@@ -134,10 +134,10 @@ un shell dedans, et il n'est presque jamais relu comme du code de production.
 Aucune de ces catégories ne remplace les autres, et chacune parle son propre
 dialecte : échelles de criticité différentes, identifiants différents, formats
 de sortie différents, aucune notion partagée permettant de savoir si deux
-constats sont le même constat. Empilées sans un endroit où atterrir, elles
-multiplient le bruit plutôt que la couverture.
+constats n'en font qu'un. Empilées sans point de convergence, elles multiplient
+le bruit bien plus que la couverture.
 
-## Gestion des vulnérabilités : la couche qui rend tout cela dénombrable
+## Gestion des vulnérabilités : la couche qui rend tout cela mesurable
 
 Dès l'instant où vous faites tourner plus de deux scanners, le goulot
 d'étranglement cesse d'être la détection et devient la comptabilité. Six outils
@@ -147,9 +147,9 @@ moyen de répondre à « est-ce qu'on s'améliore ? ».
 
 La solution est une plateforme de gestion des vulnérabilités : **DefectDojo**
 par exemple si vous voulez la voie open source, **GitLab Ultimate** (là encore,
-quelque chose avec quoi j'ai travaillé, mais il existe d'autres outils) si votre
-organisation y vit déjà et que vous voulez que les constats atterrissent dans la
-merge request. D'autres existent, et la catégorie compte davantage que le
+un outil avec lequel j'ai travaillé, mais il en existe d'autres) si votre
+organisation y est déjà installée et que vous voulez voir les constats remonter
+directement dans la merge request. D'autres existent, et la catégorie compte davantage que le
 produit. Toutes ingèrent les sorties de scanners — la plupart des outils
 émettent du SARIF ou un format natif que la plateforme sait déjà parser — et la
 plateforme devient l'endroit unique où un constat possède un état.
@@ -161,18 +161,18 @@ Ce que vous en tirez et que les outils individuels ne peuvent pas vous donner :
   Sans déduplication, vos chiffres sont gonflés par le nombre d'outils que vous
   avez achetés.
 - **Un état persistant d'un scan à l'autre.** Un constat que vous avez trié en
-  faux positif en mars reste trié en avril. C'est la propriété qui permet à la
-  discipline de mise en sourdine de survivre au contact d'un pipeline nocturne —
-  sinon chaque scan ressuscite chacune des décisions que vous avez déjà prises.
+  faux positif en mars le reste en avril. C'est ce qui permet à la discipline de
+  mise en sourdine de résister à un pipeline qui tourne toutes les nuits — sans
+  quoi chaque scan ressusciterait toutes les décisions déjà prises.
 - **Responsabilité et cycle de vie.** Chaque constat a une équipe, une criticité
   que vous avez attribuée plutôt que celle devinée par l'outil, une échéance et
   un statut. Cela se synchronise avec Jira ou les tickets GitLab pour que les
   développeurs travaillent dans leur propre outil de suivi.
-- **Visibilité sur la couverture.** Quels dépôts sont scannés par quoi. Le trou
-  que vous ne voyez pas est pire que les constats que vous voyez — un service
-  non scanné est un zéro dans tous les rapports, et un zéro ressemble à une
+- **Visibilité sur la couverture.** Quels dépôts sont scannés, et par quoi.
+  L'angle mort fait plus de dégâts que les constats visibles : un service non
+  scanné compte pour zéro dans tous les rapports, et un zéro a tout l'air d'une
   bonne nouvelle.
-- **L'historique.** Qui est tout l'objet de la partie suivante.
+- **L'historique.** C'est tout l'objet de la partie suivante.
 
 <figure class="diagram">
 <svg viewBox="0 0 720 252" role="img" aria-labelledby="fig3t">
@@ -238,16 +238,16 @@ opérationnelles :
 - distribution par âge du backlog, et combien de constats ont dépassé
   l'échéance convenue
 
-**À la direction, au risque et à l'audit**, rien de tout cela ne porte. Il leur
-faut :
+**À la direction, au risque et à l'audit**, rien de tout cela ne fait mouche. Il
+leur faut :
 
-- **la couverture des scanners en pourcentage du parc**, parce que c'est une
-  affirmation de maturité sur laquelle ils peuvent agir avec du budget
+- **la couverture des scanners en pourcentage du parc**, parce que c'est un
+  indicateur de maturité sur lequel ils peuvent agir avec du budget
 - **l'exposition concentrée là où elle compte** — les constats critiques sur les
   services exposés à Internet ou manipulant des données, pas un décompte global
 - **la tendance**, en une ligne : « les constats critiques de plus de 30 jours
-  sont passés de 40 à 6 ce trimestre ». La direction bat la valeur absolue à
-  tous les coups
+  sont passés de 40 à 6 ce trimestre ». Le sens d'évolution l'emporte sur la
+  valeur absolue, à tous les coups
 - **des preuves pour la conformité.** ISO 27001, SOC 2, PCI DSS et maintenant le
   CRA demandent tous une variante de « montrez-moi que vous trouvez et corrigez
   les vulnérabilités selon un calendrier défini ». Une plateforme de gestion des
@@ -262,19 +262,19 @@ travaillent le plus. La tendance et le délai de remédiation sont les métrique
 honnêtes.
 
 Ensuite, **ne laissez jamais la métrique devenir l'objectif**. « Fermer 90 % des
-critiques ce trimestre » produit de façon fiable de la reclassification plutôt
-que des corrections. Mesurez le processus, négociez le risque.
+critiques ce trimestre » produit immanquablement de la reclassification, pas des
+corrections. Mesurez le processus, négociez le risque.
 
-La plateforme est aussi ce qui transforme le triage d'une tâche en un flux de
-travail — et c'est la partie du métier qui consomme réellement la semaine.
+C'est aussi la plateforme qui fait passer le triage du statut de corvée à celui
+de processus — et c'est la partie du métier qui occupe réellement la semaine.
 
 ## Triage : transformer des constats en décision
 
 Un premier scan sur une base de code mature renvoie des centaines ou des
-milliers de constats. Si vous les transférez à l'équipe tels quels, vous n'avez
-pas fait de travail de sécurité — vous avez fait un déni de service sur les gens
-dont vous aviez besoin comme alliés, et vous ne récupérerez plus jamais leur
-attention.
+milliers de constats. Si vous les transmettez à l'équipe tels quels, vous n'avez
+pas fait de travail de sécurité — vous avez infligé un déni de service aux gens
+dont vous aviez justement besoin comme alliés, et vous ne récupérerez plus
+jamais leur attention.
 
 Le triage consiste à répondre à quatre questions par constat, dans cet ordre, en
 s'arrêtant au premier « non » :
@@ -320,9 +320,9 @@ Tout le reste est mis en sourdine *avec une raison écrite*, parce qu'une mise e
 sourdine inexpliquée est indiscernable d'une erreur six mois plus tard, quand
 quelqu'un relance le scan.
 
-La discipline de mise en sourdine est ce qui maintient l'ensemble en vie. L'état
-visé est un pipeline propre où tout nouveau constat signifie que quelque chose a
-changé. Un backlog de 4 000 constats rouges en permanence entraîne tout le
+C'est cette discipline de mise en sourdine qui maintient l'ensemble en vie.
+L'état visé est un pipeline propre, où tout nouveau constat signifie que quelque
+chose a changé. Un backlog de 4 000 constats rouges en permanence entraîne tout le
 monde, vous compris, à ne plus lire les sorties — et c'est strictement pire que
 de ne pas avoir le scanner du tout, parce que cela s'accompagne de l'illusion
 d'une couverture.
@@ -331,13 +331,14 @@ Quelques heuristiques qui tiennent la route :
 
 - **Classez par exploitabilité, pas par CVSS.** Le score a été attribué par
   quelqu'un qui n'a jamais vu votre architecture.
-- **Un moyen atteignable bat un critique inatteignable.** À chaque fois.
-- **Regroupez les constats par cause racine.** Quarante constats issus d'un seul
-  helper de template non sûr, c'est une correction et une conversation, pas
-  quarante tickets.
-- **Faites la rotation d'abord, corrigez ensuite, sur tout ce qui ressemble à un
-  secret.** L'identifiant est vivant dès l'instant où il est commité, pas dès
-  l'instant où vous le remarquez.
+- **Un constat moyen mais atteignable prime sur un critique hors d'atteinte.**
+  À chaque fois.
+- **Regroupez les constats par cause racine.** Quarante constats issus d'une
+  seule fonction de template mal écrite, c'est une correction et une
+  conversation, pas quarante tickets.
+- **Sur tout ce qui ressemble à un secret : rotation d'abord, correction
+  ensuite.** Le secret est actif dès l'instant où il est commité, pas à partir
+  du moment où vous le remarquez.
 
 ## La réunion est le livrable
 
@@ -349,11 +350,11 @@ parce qu'ils savent des choses que vous ignorez.
 Ce qui a tendance à marcher :
 
 - **Apportez l'exploit, pas le constat.** « Voici une requête qui renvoie la
-  facture d'un autre client » met fin au débat que « le SAST signale un IDOR »
-  déclenche.
-- **Venez avec le correctif, ou au moins avec sa forme.** Un patch, un helper
-  sûr qu'ils peuvent réutiliser, un lien vers le motif qu'ils appliquent déjà
-  correctement ailleurs.
+  facture d'un autre client » coupe court au débat que « le SAST signale un
+  IDOR » ne manque jamais de déclencher.
+- **Venez avec le correctif, ou au moins avec une piste.** Un patch, une
+  fonction sûre qu'ils peuvent réutiliser, un lien vers l'endroit où ils font
+  déjà les choses correctement.
 - **Apportez leur contexte.** Leur service traite des données de paiement, donc
   il passe en premier — ça, c'est un argument. « C'est un critique » n'en est
   pas un.
@@ -365,7 +366,7 @@ Ce qui a tendance à marcher :
   bug impossible à écrire dans cette base de code à partir de maintenant. Vous
   n'aurez alors plus jamais cette réunion.
 
-Le mode d'échec de ce rôle, c'est de devenir la personne qui transfère les
+La dérive classique de ce rôle, c'est de devenir la personne qui fait suivre les
 e-mails des scanners et bloque les livraisons. Les équipes contournent cette
 personne, généralement en découvrant quel contrôle peut être désactivé avec un
 label. **Vous n'avez aucune autorité pour corriger quoi que ce soit dans le
@@ -381,9 +382,9 @@ juste, et l'industrie est devenue raisonnablement bonne sur le sujet — langage
 défaut. Écrire une application exploitable demande plus d'efforts qu'avant.
 
 Alors les attaquants sont montés d'un cran. Si le code que vous écrivez est
-durci, compromettez le code que vous *incluez* — et touchez d'un seul coup tous
-les consommateurs en aval. C'est la même économie qui a fait gagner le phishing
-contre la cryptanalyse.
+durci, compromettez celui que vous *incluez* — et touchez d'un seul coup tous
+les consommateurs en aval. C'est le même calcul économique qui a fait gagner le
+phishing sur la cryptanalyse.
 
 ### SolarWinds : compromettre le build
 
@@ -407,13 +408,13 @@ exigences d'achat.
 
 ### Mistral AI : compromettre le mainteneur
 
-Avance rapide jusqu'aux 11–12 mai 2026. En cinq heures, un acteur malveillant
+On avance jusqu'aux 11 et 12 mai 2026. En cinq heures, un acteur malveillant
 suivi sous le nom de TeamPCP a publié **404 versions malveillantes sur environ
-172 paquets npm et 2 paquets PyPI** — la campagne que les chercheurs ont nommée
-*Mini Shai-Hulud*, la quatrième vague de cette famille depuis septembre 2025. Le
-rayon d'action incluait tout l'écosystème du routeur TanStack, 65 paquets
-UiPath, le client d'OpenSearch à 1,3 million de téléchargements hebdomadaires,
-Guardrails AI, et la suite de SDK de Mistral AI sur les deux registres.
+172 paquets npm et 2 paquets PyPI** — la campagne que les chercheurs ont baptisée
+*Mini Shai-Hulud*, la quatrième vague de cette famille depuis septembre 2025.
+L'onde de choc a touché tout l'écosystème du routeur TanStack, 65 paquets UiPath,
+le client d'OpenSearch à 1,3 million de téléchargements hebdomadaires, Guardrails
+AI, et la suite de SDK de Mistral AI sur les deux registres.
 
 Le versant Python en est l'illustration la plus nette. `mistralai` 2.4.6 a été
 publiée par-dessus une 2.4.5 légitime, avec du code injecté dans
@@ -428,11 +429,11 @@ vaut la peine de s'arrêter :
 
 Se déclencher à l'**import** plutôt qu'à l'installation est une évasion
 délibérée. Un `pip install` en bac à sable dans un environnement d'analyse ne
-l'exécute jamais. La charge utile part au premier `import mistralai` — ce qui se
-produit dans votre job de CI, ou sur le portable d'un développeur, dans un
-environnement qui par définition possède des identifiants.
+l'exécute jamais. La charge utile se déclenche au premier `import mistralai` — ce qui
+arrive dans votre job de CI, ou sur le portable d'un développeur, autrement dit
+dans un environnement qui détient des secrets par construction.
 
-Le second étage était un voleur d'identifiants : clés cloud, jetons GitHub, clés
+Le second étage était un voleur de secrets : clés cloud, jetons GitHub, clés
 SSH, comptes de service Kubernetes, jetons Vault, jetons de publication sur les
 registres. Il vérifiait son environnement avant de s'exécuter, et dans certaines
 zones géographiques embarquait une branche destructrice. Il exfiltrait via une
@@ -441,10 +442,10 @@ répliquait* — en utilisant les jetons GitHub volés pour commiter des
 configurations d'IDE et d'éditeur empoisonnées dans les propres dépôts de la
 victime.
 
-Cette dernière propriété est ce qui rend cette génération différente de
-SolarWinds. Il ne s'agit pas d'un éditeur compromis. C'est un ver dont le
-support de propagation est les identifiants des développeurs, et chaque jeton de
-publication volé est un nouveau point de départ.
+C'est cette dernière propriété qui distingue cette génération de SolarWinds. Il
+ne s'agit plus d'un éditeur compromis, mais d'un ver qui se propage par les
+identifiants des développeurs, où chaque jeton de publication volé devient un
+nouveau point de départ.
 
 <figure class="diagram">
 <svg viewBox="0 0 720 262" role="img" aria-labelledby="fig4t">
@@ -486,14 +487,15 @@ publication volé est un nouveau point de départ.
   <path class="d-arrow-a" color="var(--accent)" marker-end="url(#a4)"
         d="M614,182 V212 H83 V186"/>
   <text class="d-am" x="348" y="228" text-anchor="middle">les jetons volés à chaque victime publient la vague suivante</text>
-  <text class="d-m"  x="8"   y="252">Pas un éditeur compromis — un ver dont le support de propagation est les identifiants des développeurs.</text>
+  <text class="d-m"  x="8"   y="252">Pas un éditeur compromis, mais un ver qui se propage par les identifiants des développeurs.</text>
 </svg>
 <figcaption>Six ans d'écart, la même intuition appliquée un cran plus haut : ne pas attaquer le produit, mais ce à quoi tout l'aval fait déjà confiance. La différence, c'est la flèche de retour — SolarWinds s'arrêtait au client, celle-ci y repart.</figcaption>
 </figure>
 
 ### Pourquoi votre SCA n'a rien dit
 
-Lisez attentivement l'échec de détection, parce que c'est tout l'enjeu :
+Regardez de près pourquoi la détection a échoué, parce que c'est là que tout se
+joue :
 
 - Le paquet venait du **compte officiel**, via le **pipeline officiel**.
 - Les contrôles d'intégrité **sont passés** — l'empreinte correspondait à ce qui
@@ -506,7 +508,7 @@ Le SCA compare votre arbre à une liste de versions connues comme mauvaises. Une
 version malveillante toute fraîche n'est sur aucune liste au moment où vous
 l'installez. **Le contrôle qui nous protège des dépendances vulnérables depuis
 dix ans est structurellement aveugle aux dépendances malveillantes**, et aucun
-réglage n'y remédie, parce que le manque est dans le modèle, pas dans la
+réglage n'y changera rien : la faille est dans le modèle, pas dans la
 configuration.
 
 <figure class="diagram">
@@ -527,7 +529,7 @@ configuration.
   <text class="d-t d-b" x="560" y="30" text-anchor="middle">t₀ + heures à jours</text>
   <text class="d-m"     x="560" y="16" text-anchor="middle">détectée · CVE · retirée</text>
 </svg>
-<figcaption>Le contrôle qui attrape les dépendances vulnérables fonctionne par consultation d'une liste, il est donc vide exactement aussi longtemps que l'attaque est nouvelle. Un délai de carence sur les nouvelles versions déplace votre installation à droite de cette troisième ligne, ce qui en fait le contrôle le moins cher de la liste ci-dessous.</figcaption>
+<figcaption>Le contrôle qui rattrape les dépendances vulnérables fonctionne par consultation d'une liste : il reste donc muet aussi longtemps que l'attaque est nouvelle. Un délai de carence sur les nouvelles versions déplace votre installation à droite de cette troisième ligne, ce qui en fait le contrôle le moins cher de la liste ci-dessous.</figcaption>
 </figure>
 
 Notez aussi comment l'accès a été obtenu tout au long de cette campagne :
@@ -536,14 +538,15 @@ identifiants de mainteneurs détournés, et GitHub Actions mal configurées —
 élevé, empoisonnement de cache, et jetons OIDC de courte durée récupérés
 directement dans la mémoire des processus du runner. Personne n'a trouvé de bug
 dans le produit de qui que ce soit. Ils ont attaqué le pipeline de publication,
-que presque personne ne modélise en menace, et les mainteneurs, qui sont souvent
-des bénévoles non rémunérés avec des comptes personnels et zéro budget sécurité.
+que presque personne n'inclut dans son modèle de menace, et les mainteneurs, le
+plus souvent des bénévoles non rémunérés, avec des comptes personnels et zéro
+budget sécurité.
 
 ## Ce que l'AppSec fait concrètement face à cela
 
 Le travail sur la chaîne d'approvisionnement ne ressemble pas au reste du rôle.
 Le code qu'il faut examiner pour vraiment durcir sa chaîne d'approvisionnement
-reprend un principe qu'on se renvoie depuis des années : le **« Zero-Trust »**.
+repose sur un principe dont on parle depuis des années : le **« Zero-Trust »**.
 
 Dans cette acception, on peut appliquer plusieurs actions sur la **chaîne
 d'approvisionnement** pour à la fois **atténuer** et **bloquer** ce que nous ou
@@ -560,35 +563,35 @@ les équipes sécurité définissons comme *non sûr* :
 - **Traitez la CI comme de la production.** Jetons au moindre privilège, pas de
   `pull_request_target` sur des entrées non fiables, OIDC à portée restreinte, et
   lint des workflows avec quelque chose comme `zizmor`. Le runner détient les
-  identifiants de tout.
+  accès à tout.
 - **Restreignez les sorties réseau des builds.** Une étape de build qui peut
   joindre une IP arbitraire est une étape de build qui peut exfiltrer. Mettre
-  vos registres en liste d'autorisation casse le second étage même quand le
+  vos registres en liste d'autorisation neutralise le second étage même quand le
   premier a réussi.
 - **Exigez et vérifiez la provenance.** Les attestations et la publication de
   confiance relient un artefact au pipeline qui l'a produit — la réponse directe
   au problème SolarWinds, aujourd'hui largement disponible et toujours largement
   inutilisée.
-- **Planifiez la rotation, à l'avance.** La remédiation à « on l'a importé »
-  n'est pas une montée de version. C'est la rotation de tous les identifiants
-  qui existaient dans cet environnement, et vous voulez savoir combien de temps
-  cela prend *avant* d'en avoir besoin.
-- **Surveillez le comportement, pas seulement l'inventaire.** Rien de statique
-  n'allait attraper la 2.4.6. Un build qui joint une IP inconnue est un signal
-  qui ne dépend d'aucune base de vulnérabilités à jour.
+- **Planifiez la rotation à l'avance.** La remédiation à « on l'a importé » ne
+  se règle pas par une montée de version. Il faut renouveler tous les secrets
+  présents dans cet environnement, et mieux vaut savoir combien de temps cela
+  prend *avant* d'en avoir besoin.
+- **Surveillez le comportement, pas seulement l'inventaire.** Aucune analyse
+  statique n'allait rattraper la 2.4.6. Un build qui contacte une IP inconnue
+  est un signal qui ne dépend d'aucune base de vulnérabilités à jour.
 
 ## Alors, c'est quoi ce métier, en un paragraphe
 
 L'Application Security est la fonction qui fait du code sûr le chemin de moindre
-résistance pour tous les autres. Elle intervient assez tôt dans la conception
-pour changer la forme du système, fait tourner l'outillage qui attrape ce qui se
-généralise, absorbe le bruit de cet outillage pour que les développeurs n'aient
-jamais à le subir, convertit les survivants en travail priorisé lors d'une
-réunion où elle arrive avec des correctifs plutôt qu'avec des exigences, garde
-l'ensemble dans un seul système pour que « est-ce qu'on s'améliore » ait une
-réponse défendable auprès des ingénieurs comme du conseil d'administration, et
-maintient un modèle vivant de la façon dont le code qui n'a jamais été écrit en
-interne entre chez vous et de ce qu'il peut atteindre une fois entré.
+résistance pour tout le monde. Elle intervient assez tôt dans la conception pour
+peser sur l'architecture, fait tourner l'outillage qui rattrape ce qui se
+généralise, encaisse le bruit de cet outillage pour que les développeurs n'aient
+jamais à le subir, transforme ce qui reste en travail priorisé lors d'une réunion
+où elle arrive avec des correctifs plutôt qu'avec des exigences, garde l'ensemble
+dans un seul système pour que « est-ce qu'on s'améliore ? » ait une réponse
+défendable devant les ingénieurs comme devant le conseil d'administration, et
+entretient un modèle vivant de la façon dont le code qui n'a jamais été écrit en
+interne entre chez vous, et de ce qu'il peut atteindre une fois entré.
 
 Les scanners sont le ticket d'entrée. **Le jugement, c'est le métier.**
 
