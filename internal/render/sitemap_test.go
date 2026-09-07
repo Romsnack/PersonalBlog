@@ -24,15 +24,17 @@ func writeAndParseSitemap(t *testing.T, s *Site) urlSet {
 	return set
 }
 
-func TestSitemapListsEveryPage(t *testing.T) {
+const base = "https://romsnack.github.io/PersonalBlog"
+
+// One sitemap covers every language, which is what the protocol expects.
+func TestSitemapListsEveryPageInEveryLanguage(t *testing.T) {
 	set := writeAndParseSitemap(t, testSite())
 
-	got := map[string]string{}
+	got := map[string]bool{}
 	for _, u := range set.URLs {
-		got[u.Loc] = u.LastMod
+		got[u.Loc] = true
 	}
 
-	const base = "https://romsnack.github.io/PersonalBlog"
 	for _, want := range []string{
 		base + "/",
 		base + "/tags/",
@@ -41,13 +43,51 @@ func TestSitemapListsEveryPage(t *testing.T) {
 		base + "/about/",
 		base + "/tags/containers/",
 		base + "/tags/docker/",
+		base + "/fr/",
+		base + "/fr/tags/",
+		base + "/fr/posts/couches/",
+		base + "/fr/a-propos/",
+		base + "/fr/tags/containers/",
+		base + "/fr/tags/docker/",
 	} {
-		if _, ok := got[want]; !ok {
+		if !got[want] {
 			t.Errorf("sitemap is missing %s", want)
 		}
 	}
-	if len(set.URLs) != 7 {
-		t.Errorf("got %d URLs, want 7", len(set.URLs))
+	// 7 English URLs and 6 French ones — French has no counterpart for /hello/.
+	if len(set.URLs) != 13 {
+		t.Errorf("got %d URLs, want 13", len(set.URLs))
+	}
+}
+
+func TestSitemapPairsTranslationsAsAlternates(t *testing.T) {
+	set := writeAndParseSitemap(t, testSite())
+
+	byLoc := map[string]sitemapURL{}
+	for _, u := range set.URLs {
+		byLoc[u.Loc] = u
+	}
+
+	// A translated post carries an alternate for each language, itself
+	// included — which is what the protocol asks for.
+	got := map[string]string{}
+	for _, a := range byLoc[base+"/posts/layers/"].Alternates {
+		if a.Rel != "alternate" {
+			t.Errorf("rel = %q, want alternate", a.Rel)
+		}
+		got[a.HrefLang] = a.Href
+	}
+	if got["en"] != base+"/posts/layers/" {
+		t.Errorf("en alternate = %q", got["en"])
+	}
+	if got["fr"] != base+"/fr/posts/couches/" {
+		t.Errorf("fr alternate = %q", got["fr"])
+	}
+
+	// A post that exists in one language only has nothing to point at, so it
+	// must not claim an alternate.
+	if alts := byLoc[base+"/posts/hello/"].Alternates; len(alts) != 0 {
+		t.Errorf("an untranslated post has %d alternates, want 0", len(alts))
 	}
 }
 
@@ -67,14 +107,16 @@ func TestSitemapLastModIsADate(t *testing.T) {
 
 func TestSitemapOmitsLastModWhenThereAreNoPosts(t *testing.T) {
 	s := testSite()
-	s.Posts = nil
-	s.Tags = nil
+	for _, ed := range s.Editions {
+		ed.Posts = nil
+		ed.Tags = nil
+	}
 	set := writeAndParseSitemap(t, s)
 
 	for _, u := range set.URLs {
 		// The root and /tags/ derive their date from the newest post; with no
 		// posts the zero time must be omitted rather than serialised.
-		if u.Loc == "https://romsnack.github.io/PersonalBlog/" && u.LastMod != "" {
+		if u.Loc == base+"/" && u.LastMod != "" {
 			t.Errorf("root lastmod = %q, want it omitted", u.LastMod)
 		}
 	}

@@ -4,9 +4,9 @@
 {{range .Posts}}
   <li class="post-item">
     <a class="post-link" href="{{url .Path}}"><span class="glyph" aria-hidden="true">▸</span>{{.Title}}</a>
-    <p class="meta"><time datetime="{{rfc3339 .Date}}">{{date .Date}}</time> · {{.ReadingTime}} min</p>
+    <p class="meta"><time datetime="{{rfc3339 .Date}}">{{date .Date}}</time> · {{.ReadingTime}} {{t "readingTime"}}</p>
   </li>
 {{end}}
 </ul>
-<p class="back"><a href="{{url "/tags/"}}">← all tags</a></p>
+<p class="back"><a href="{{url "/tags/"}}">{{t "back.tags"}}</a></p>
 {{end}}

@@ -85,7 +85,7 @@ a:hover { text-decoration-thickness: 2px; }
 .wordmark { color: var(--text); text-decoration: none; font-weight: 600; }
 .wordmark:hover { color: var(--accent); }
 
-.site-header nav { display: flex; align-items: baseline; gap: 1.25rem; }
+.site-header nav { display: flex; align-items: baseline; flex-wrap: wrap; gap: 0.5rem 1.25rem; }
 .site-header nav a { color: var(--muted); text-decoration: none; }
 .site-header nav a:hover { color: var(--accent); }
 
@@ -110,6 +110,22 @@ a:hover { text-decoration-thickness: 2px; }
 .theme-toggle:hover { color: var(--accent); }
 .theme-toggle .bracket { color: var(--accent-dim); }
 .js .theme-toggle { display: inline; }
+
+/* Language switcher: the same bracketed shape as the theme toggle, but plain
+   links — every edition of a page is a real URL, so it works with JavaScript
+   off and survives being copied out of the address bar. The current language
+   is the one that is not a link. */
+.lang-switch { color: var(--muted); white-space: nowrap; }
+.lang-switch .bracket { color: var(--accent-dim); }
+.lang-switch .sep { color: var(--accent-dim); margin-inline: 0.35em; }
+.lang-switch a { color: var(--muted); text-decoration: none; }
+.lang-switch a:hover { color: var(--accent); }
+.lang-current { color: var(--text); font-weight: 600; }
+
+/* No translation of this page exists, so the link goes to that language's
+   homepage. Dimmed and dotted, to set the expectation before the click. */
+.lang-switch a.untranslated { opacity: 0.6; text-decoration: underline dotted 1px; text-underline-offset: 2px; }
+.lang-switch a.untranslated:hover { opacity: 1; }
 
 /* --- headings ------------------------------------------------------------ */
 

@@ -93,6 +93,20 @@ func TestFirstSentencesSkipsFrontmatterAndHeadings(t *testing.T) {
 	}
 }
 
+// parse writes one Markdown file to a temp dir and parses it.
+func parse(t *testing.T, name, body string) *Post {
+	t.Helper()
+	path := filepath.Join(t.TempDir(), name)
+	if err := os.WriteFile(path, []byte(body), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	p, err := ParseFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return p
+}
+
 func TestParseFileRequiresATitle(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "2026-08-20-untitled.md")
@@ -159,5 +173,43 @@ func TestParseDirSortsNewestFirstAndDropsDrafts(t *testing.T) {
 	}
 	if len(withDrafts) != 3 {
 		t.Errorf("got %d posts with drafts enabled, want 3", len(withDrafts))
+	}
+}
+
+// --- translation linking ---------------------------------------------------
+
+// Translations of the same article carry different slugs, so the key is what
+// ties them together. It defaults to the slug, meaning a post with no
+// translation needs no frontmatter at all.
+func TestParseFileDefaultsTranslationKeyToTheSlug(t *testing.T) {
+	p := parse(t, "2026-08-20-layers.md", "---\ntitle: Layers\n---\n\nBody.\n")
+	if p.TranslationKey != "layers" {
+		t.Errorf("TranslationKey = %q, want the slug", p.TranslationKey)
+	}
+}
+
+func TestParseFileReadsAnExplicitTranslationKey(t *testing.T) {
+	p := parse(t, "2026-08-20-couches.md",
+		"---\ntitle: Couches\nslug: couches\ntranslationKey: layers\n---\n\nCorps.\n")
+	if p.Slug != "couches" {
+		t.Errorf("Slug = %q", p.Slug)
+	}
+	if p.TranslationKey != "layers" {
+		t.Errorf("TranslationKey = %q, want layers", p.TranslationKey)
+	}
+}
+
+// Nav is the header label for a standalone page, so a French page can read
+// "à propos" rather than its slug.
+func TestParseFileNavDefaultsToTheSlugAndCanBeSet(t *testing.T) {
+	p := parse(t, "about.md", "---\ntitle: About\ndate: 2026-08-20\n---\n\nHi.\n")
+	if p.Nav != "about" {
+		t.Errorf("Nav = %q, want the slug", p.Nav)
+	}
+
+	p = parse(t, "a-propos.md",
+		"---\ntitle: À propos\ndate: 2026-08-20\nnav: à propos\n---\n\nSalut.\n")
+	if p.Nav != "à propos" {
+		t.Errorf("Nav = %q, want the frontmatter value", p.Nav)
 	}
 }

@@ -1,18 +1,25 @@
 <!doctype html>
-<html lang="{{.Site.Config.Language}}">
+<html lang="{{.Site.Lang.Code}}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{{if .Title}}{{.Title}} · {{end}}{{.Site.Config.Title}}</title>
+<title>{{if .Title}}{{.Title}} · {{end}}{{.Site.Title}}</title>
 <meta name="description" content="{{.Description}}">
 <link rel="canonical" href="{{absURL .Path}}">
-<link rel="stylesheet" href="{{url "/style.css"}}">
-<link rel="stylesheet" href="{{url "/chroma.css"}}">
-<link rel="alternate" type="application/atom+xml" title="{{.Site.Config.Title}}" href="{{url "/atom.xml"}}">
+<link rel="stylesheet" href="{{asset "/style.css"}}">
+<link rel="stylesheet" href="{{asset "/chroma.css"}}">
+<link rel="alternate" type="application/atom+xml" title="{{.Site.Title}}" href="{{url "/atom.xml"}}">
+{{/* One hreflang per language that actually has this page, so a search engine
+     serves a reader their own edition instead of calling the translations
+     duplicates. x-default points at the default language. */}}
+{{range .Alts}}{{if .Translated}}<link rel="alternate" hreflang="{{.Lang.Code}}" href="{{.AbsURL}}">
+{{end}}{{end}}{{with index .Alts 0}}{{if .Translated}}<link rel="alternate" hreflang="x-default" href="{{.AbsURL}}">
+{{end}}{{end}}
 <meta property="og:type" content="{{if .Post}}article{{else}}website{{end}}">
-<meta property="og:title" content="{{if .Title}}{{.Title}}{{else}}{{.Site.Config.Title}}{{end}}">
+<meta property="og:title" content="{{if .Title}}{{.Title}}{{else}}{{.Site.Title}}{{end}}">
 <meta property="og:description" content="{{.Description}}">
 <meta property="og:url" content="{{absURL .Path}}">
+<meta property="og:locale" content="{{.Site.Lang.Code}}">
 <script>
 // Runs before first paint so a light-theme reader never sees a dark flash.
 // Adding .js here also reveals the toggle, which is useless without scripting.
@@ -25,14 +32,26 @@
 </head>
 <body>
 <header class="site-header">
-  <a class="wordmark" href="{{url "/"}}">{{.Site.Config.Title}}</a>
+  <a class="wordmark" href="{{url "/"}}">{{.Site.Title}}</a>
   <nav>
-    <a href="{{url "/"}}">posts</a>
-    <a href="{{url "/tags/"}}">tags</a>
-    {{range .Site.Pages}}<a href="{{url .Path}}">{{.Slug}}</a>{{end}}
-    <button class="theme-toggle" type="button" aria-label="Switch to light theme">
-      <span class="bracket">[</span><span class="theme-name">dark</span><span class="bracket">]</span>
+    <a href="{{url "/"}}">{{t "nav.posts"}}</a>
+    <a href="{{url "/tags/"}}">{{t "nav.tags"}}</a>
+    {{range .Site.Pages}}<a href="{{url .Path}}">{{.Nav}}</a>{{end}}
+    <button class="theme-toggle" type="button"
+            data-dark="{{t "theme.dark"}}" data-light="{{t "theme.light"}}"
+            data-to-dark="{{t "theme.toDark"}}" data-to-light="{{t "theme.toLight"}}"
+            aria-label="{{t "theme.toLight"}}">
+      <span class="bracket">[</span><span class="theme-name">{{t "theme.dark"}}</span><span class="bracket">]</span>
     </button>
+    {{/* The language switcher is plain links, not a control: every edition is
+         a real URL, so it works without JavaScript and stays shareable. A
+         language with no translation of this page links to its homepage and is
+         dimmed, rather than promising something that isn't there. */}}
+    {{if gt (len .Alts) 1}}
+    <span class="lang-switch" aria-label="{{t "lang.label"}}">
+      <span class="bracket">[</span>{{range $i, $a := .Alts}}{{if $i}}<span class="sep">·</span>{{end}}{{if $a.Current}}<span class="lang-current" aria-current="true">{{$a.Lang.Code}}</span>{{else}}<a href="{{$a.URL}}" hreflang="{{$a.Lang.Code}}" lang="{{$a.Lang.Code}}" title="{{$a.Lang.Name}}"{{if not $a.Translated}} class="untranslated" rel="nofollow"{{end}}>{{$a.Lang.Code}}</a>{{end}}{{end}}<span class="bracket">]</span>
+    </span>
+    {{end}}
   </nav>
 </header>
 
@@ -44,7 +63,7 @@
   <span>© {{year}} {{.Site.Config.Author}} · <a rel="license" href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></span>
   <nav class="footer-links">
     {{range .Site.Config.Links}}<a href="{{.URL}}" rel="me">{{.Name}}</a>
-    {{end}}<a href="{{url "/atom.xml"}}">atom</a>
+    {{end}}<a href="{{url "/atom.xml"}}">{{t "feed"}}</a>
   </nav>
 </footer>
 <script>
@@ -55,8 +74,9 @@
 
   function paint() {
     var light = d.dataset.theme === "light";
-    name.textContent = light ? "light" : "dark";
-    btn.setAttribute("aria-label", "Switch to " + (light ? "dark" : "light") + " theme");
+    // The labels come from the markup so they arrive already translated.
+    name.textContent = light ? btn.dataset.light : btn.dataset.dark;
+    btn.setAttribute("aria-label", light ? btn.dataset.toDark : btn.dataset.toLight);
   }
 
   btn.addEventListener("click", function () {

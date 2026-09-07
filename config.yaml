@@ -4,11 +4,26 @@
 # create static/CNAME containing that domain. Nothing else needs to change.
 title: Romsnack
 author: Romsnack
-description: Notes on DevSecOps, AppSec and security as a broad.
-# Shown under the wordmark in the header, on every page.
-tagline: DevSecOps is a mindset, not a job title.
 baseURL: https://romsnack.github.io/PersonalBlog
-language: en
+
+# The default language is served from the root — /posts/… — and every other
+# one from its own prefix, /fr/posts/…. Content lives in content/<code>/, so
+# content/en/posts and content/fr/posts. Adding a language means adding an
+# entry here, a content/<code>/ directory, and a block in
+# internal/render/i18n.go for the chrome (nav labels, back links).
+defaultLanguage: en
+
+languages:
+  - code: en
+    name: English
+    description: Notes on DevSecOps, AppSec and security as a broad.
+    # Shown under the wordmark in the header, on every page.
+    tagline: DevSecOps is a mindset, not a job title.
+
+  - code: fr
+    name: Français
+    description: Notes sur le DevSecOps, l'AppSec et la sécurité au sens large.
+    tagline: Le DevSecOps est un état d'esprit, pas un intitulé de poste.
 
 # External profiles, shown in the footer. Add or reorder freely; the footer
 # renders whatever is listed here.

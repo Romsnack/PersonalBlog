@@ -3,6 +3,7 @@ title: AppSec is not running the scanner. It's everything after.
 date: 2026-08-20
 tags: [appsec, devsecops, supply-chain, sdlc]
 summary: What an Application Security engineer actually does across the SDLC — which tools cover which stage, how a vulnerability management platform turns their output into numbers you can defend in a board meeting, why triage is the real job, and how the software supply chain went from a footnote to the main threat between SolarWinds and the Mistral AI SDK compromise.
+translationKey: application-security-role
 ---
 
 The job is easy to describe badly. "Application Security engineer: runs security

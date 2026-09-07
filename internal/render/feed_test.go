@@ -9,15 +9,15 @@ import (
 	"time"
 )
 
-// writeAndParseFeed builds the site's feed in a temp dir and unmarshals it, so
-// the assertions run against the same XML a reader would receive.
-func writeAndParseFeed(t *testing.T, s *Site) (atomFeed, string) {
+// writeAndParseFeed builds one edition's feed in a temp dir and unmarshals it,
+// so the assertions run against the same XML a reader would receive.
+func writeAndParseFeed(t *testing.T, ed *Edition) (atomFeed, string) {
 	t.Helper()
 	out := t.TempDir()
-	if err := s.writeFeed(out); err != nil {
+	if err := ed.writeFeed(out); err != nil {
 		t.Fatal(err)
 	}
-	raw, err := os.ReadFile(filepath.Join(out, "atom.xml"))
+	raw, err := os.ReadFile(filepath.Join(ed.outPath(out, "/atom.xml")))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -29,7 +29,7 @@ func writeAndParseFeed(t *testing.T, s *Site) (atomFeed, string) {
 }
 
 func TestFeedCarriesSiteIdentity(t *testing.T) {
-	f, raw := writeAndParseFeed(t, testSite())
+	f, raw := writeAndParseFeed(t, en(testSite()))
 
 	if !strings.HasPrefix(raw, xml.Header) {
 		t.Error("feed is missing the XML declaration")
@@ -46,7 +46,7 @@ func TestFeedCarriesSiteIdentity(t *testing.T) {
 }
 
 func TestFeedHasAlternateAndSelfLinks(t *testing.T) {
-	f, _ := writeAndParseFeed(t, testSite())
+	f, _ := writeAndParseFeed(t, en(testSite()))
 
 	byRel := map[string]string{}
 	for _, l := range f.Links {
@@ -60,8 +60,41 @@ func TestFeedHasAlternateAndSelfLinks(t *testing.T) {
 	}
 }
 
+// Each language gets its own feed, so a reader subscribes to the edition they
+// read rather than to a mixed-language stream.
+func TestFeedIsPerLanguage(t *testing.T) {
+	f, _ := writeAndParseFeed(t, fr(testSite()))
+
+	const base = "https://romsnack.github.io/PersonalBlog"
+	if f.ID != base+"/fr/" {
+		t.Errorf("ID = %q, want the French site root", f.ID)
+	}
+	if f.Lang != "fr" {
+		t.Errorf("xml:lang = %q, want fr", f.Lang)
+	}
+	if f.Subtitle != "Notes sur le DevSecOps." {
+		t.Errorf("Subtitle = %q, want the French description", f.Subtitle)
+	}
+
+	byRel := map[string]string{}
+	for _, l := range f.Links {
+		byRel[l.Rel] = l.Href
+	}
+	if byRel["self"] != base+"/fr/atom.xml" {
+		t.Errorf("self = %q, want the French feed's own URL", byRel["self"])
+	}
+
+	// Only French posts, at French URLs.
+	if len(f.Entries) != 1 {
+		t.Fatalf("got %d entries, want 1", len(f.Entries))
+	}
+	if f.Entries[0].ID != base+"/fr/posts/couches/" {
+		t.Errorf("entry ID = %q, want the French URL", f.Entries[0].ID)
+	}
+}
+
 func TestFeedUpdatedMatchesTheNewestPost(t *testing.T) {
-	f, _ := writeAndParseFeed(t, testSite())
+	f, _ := writeAndParseFeed(t, en(testSite()))
 
 	// testSite's newest post is 2026-08-20.
 	want := day("2026-08-20").UTC().Format(time.RFC3339)
@@ -71,7 +104,7 @@ func TestFeedUpdatedMatchesTheNewestPost(t *testing.T) {
 }
 
 func TestFeedEntriesAreAbsoluteAndOrdered(t *testing.T) {
-	f, _ := writeAndParseFeed(t, testSite())
+	f, _ := writeAndParseFeed(t, en(testSite()))
 
 	if len(f.Entries) != 2 {
 		t.Fatalf("got %d entries, want 2", len(f.Entries))
@@ -96,9 +129,9 @@ func TestFeedEntriesAreAbsoluteAndOrdered(t *testing.T) {
 }
 
 func TestFeedWithNoPostsIsStillValid(t *testing.T) {
-	s := testSite()
-	s.Posts = nil
-	f, _ := writeAndParseFeed(t, s)
+	ed := en(testSite())
+	ed.Posts = nil
+	f, _ := writeAndParseFeed(t, ed)
 
 	if len(f.Entries) != 0 {
 		t.Errorf("got %d entries, want 0", len(f.Entries))

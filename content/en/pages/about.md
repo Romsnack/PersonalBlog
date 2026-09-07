@@ -3,6 +3,8 @@ title: About
 date: 2026-08-20
 slug: about
 summary: Who writes here.
+translationKey: about
+nav: about
 ---
 
 I'm Romsnack a cybersecurity enthusiast.

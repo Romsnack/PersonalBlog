@@ -18,13 +18,24 @@ import (
 
 // Post is one rendered Markdown file, ready to hand to a template.
 type Post struct {
-	Title       string
-	Date        time.Time
-	Tags        []string
-	Draft       bool
-	Summary     string
-	Slug        string
-	Path        string // site-relative, e.g. "/posts/hello-world/"
+	Title   string
+	Date    time.Time
+	Tags    []string
+	Draft   bool
+	Summary string
+	Slug    string
+	// Path is site-relative and language-agnostic, e.g. "/posts/hello-world/".
+	// The language prefix is added at render time by config.LangURL, so a post
+	// does not need to know which edition of the site it belongs to.
+	Path string
+	// TranslationKey ties this post to its counterpart in the other languages.
+	// Translations share a key while their slugs differ, which is what lets
+	// the header switcher land on the same article instead of the homepage.
+	// Defaults to the slug, so a post with no translation needs no key.
+	TranslationKey string
+	// Nav is the label used when this page appears in the header nav, for
+	// standalone pages only. Defaults to the slug.
+	Nav         string
 	HTML        template.HTML
 	ReadingTime int // whole minutes, minimum 1
 	SourcePath  string
@@ -32,12 +43,14 @@ type Post struct {
 
 // matter mirrors the YAML frontmatter block at the top of each post.
 type matter struct {
-	Title   string   `yaml:"title"`
-	Date    string   `yaml:"date"`
-	Tags    []string `yaml:"tags"`
-	Draft   bool     `yaml:"draft"`
-	Summary string   `yaml:"summary"`
-	Slug    string   `yaml:"slug"`
+	Title          string   `yaml:"title"`
+	Date           string   `yaml:"date"`
+	Tags           []string `yaml:"tags"`
+	Draft          bool     `yaml:"draft"`
+	Summary        string   `yaml:"summary"`
+	Slug           string   `yaml:"slug"`
+	TranslationKey string   `yaml:"translationKey"`
+	Nav            string   `yaml:"nav"`
 }
 
 // datePrefix matches the "2026-08-20-" that orders files in the directory
@@ -84,17 +97,28 @@ func ParseFile(path string) (*Post, error) {
 		return nil, fmt.Errorf("%s: frontmatter is missing a title", path)
 	}
 
+	key := fm.TranslationKey
+	if key == "" {
+		key = slug
+	}
+	nav := fm.Nav
+	if nav == "" {
+		nav = slug
+	}
+
 	p := &Post{
-		Title:       title,
-		Date:        date,
-		Tags:        normalizeTags(fm.Tags),
-		Draft:       fm.Draft,
-		Summary:     fm.Summary,
-		Slug:        slug,
-		Path:        "/posts/" + slug + "/",
-		HTML:        template.HTML(buf.String()),
-		ReadingTime: readingTime(src),
-		SourcePath:  path,
+		Title:          title,
+		Date:           date,
+		Tags:           normalizeTags(fm.Tags),
+		Draft:          fm.Draft,
+		Summary:        fm.Summary,
+		Slug:           slug,
+		Path:           "/posts/" + slug + "/",
+		TranslationKey: key,
+		Nav:            nav,
+		HTML:           template.HTML(buf.String()),
+		ReadingTime:    readingTime(src),
+		SourcePath:     path,
 	}
 	if p.Summary == "" {
 		p.Summary = firstSentences(src)

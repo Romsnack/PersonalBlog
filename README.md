@@ -1,8 +1,8 @@
 # PersonalBlog
 
-A personal blog and the static site generator that builds it — about 700 lines
-of Go, no framework, no JavaScript shipped to readers. Deployed to GitHub Pages
-by Actions on every push to `main`.
+A personal blog and the static site generator that builds it — about 1,000 lines
+of Go, no framework, no JavaScript shipped to readers. Published in English and
+French. Deployed to GitHub Pages by Actions on every push to `main`.
 
 ## Usage
 
@@ -14,8 +14,10 @@ go run . build -drafts  # include posts with draft: true
 
 ## Writing a post
 
-Create `content/posts/YYYY-MM-DD-some-slug.md`. The date prefix orders the
-directory listing and is stripped from the URL, so that file is served at
+Content is organised by language: `content/en/` and `content/fr/`, each with its
+own `posts/` and `pages/`. Create
+`content/en/posts/YYYY-MM-DD-some-slug.md`. The date prefix orders the directory
+listing and is stripped from the URL, so that file is served at
 `/posts/some-slug/`.
 
 ```markdown
@@ -25,24 +27,60 @@ date: 2026-08-20
 tags: [go, meta]
 summary: Optional. Falls back to the first paragraph.
 draft: false
+translationKey: static-site-generator
 ---
 
 Body in Markdown. GFM tables, footnotes and fenced code blocks all work.
 ```
 
-Standalone pages (about, uses, …) go in `content/pages/` and are served at the
-root: `content/pages/about.md` → `/about/`. They appear in the header nav
-automatically.
+Standalone pages (about, uses, …) go in `content/<lang>/pages/` and are served
+at the root: `content/en/pages/about.md` → `/about/`. They appear in the header
+nav automatically, labelled by their slug unless the frontmatter sets `nav:`.
+
+## Languages
+
+The **default language is served from the root** and every other one from its
+own prefix, so adding a language never moves a page that already exists:
+
+| | English (default) | French |
+| --- | --- | --- |
+| Homepage | `/` | `/fr/` |
+| Post | `/posts/<slug>/` | `/fr/posts/<slug>/` |
+| Tags | `/tags/` | `/fr/tags/` |
+| Feed | `/atom.xml` | `/fr/atom.xml` |
+
+Each language is a complete, independent edition: its own post list, its own tag
+pages, its own Atom feed. They share only `config.yaml` and `static/`.
+
+**Slugs are translated too** — `/posts/container-layers-secrets/` is
+`/fr/posts/votre-conteneur-a-supprime-le-secret/` — so the two files are tied
+together by a shared `translationKey:` rather than by their filenames. It
+defaults to the slug, which means a post that exists in one language only needs
+nothing extra. The header switcher and the `hreflang` tags both read that key;
+where a translation is missing the switcher falls back to that language's
+homepage and dims the link, and no `hreflang` alternate is emitted.
+
+Adding a language takes three things:
+
+1. an entry under `languages:` in `config.yaml` (code, native name, description,
+   tagline),
+2. a `content/<code>/` directory with at least `posts/`,
+3. a block in `internal/render/i18n.go` for the chrome — nav labels, back links,
+   empty states. A key missing there falls back to the default language rather
+   than rendering blank.
+
+Post bodies are translated by hand; nothing in the build machine-translates.
 
 ## Layout
 
 | Path | What it is |
 | --- | --- |
 | `main.go` | CLI: `build` and `serve` |
-| `config.yaml` | title, author, description, `baseURL` |
+| `config.yaml` | title, author, `baseURL`, the language list |
 | `internal/config` | config loading; derives the deployment subpath from `baseURL` |
 | `internal/content` | Markdown → `Post` (goldmark + frontmatter + chroma) |
 | `internal/render` | site model → HTML, `atom.xml`, `sitemap.xml` |
+| `internal/render/i18n.go` | UI strings for the chrome, one map per language |
 | `internal/render/templates` | embedded `html/template` files |
 | `internal/serve` | preview server, file watcher, SSE live reload |
 | `static/` | copied verbatim into the output |
@@ -115,7 +153,10 @@ Set the repository's **Settings → Pages → Source** to **GitHub Actions**
 4. Enable **Enforce HTTPS** in Settings → Pages once the certificate issues.
 
 Nothing in the templates hardcodes a host; every link goes through the `url` /
-`absURL` helpers, so step 1 is the only code change.
+`absURL` helpers, so step 1 is the only code change. Those two resolve against
+the language being rendered; `asset` is the third helper, for files out of
+`static/`, which are shared by every language and so never take a language
+prefix.
 
 ## Design
 

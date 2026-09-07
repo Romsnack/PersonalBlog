@@ -3,6 +3,7 @@ title: Your container deleted the secret. The layer kept it.
 date: 2026-08-20
 tags: [containers, docker, security]
 summary: What an image actually is on disk, why RUN rm never removes anything, and three ways to pull credentials back out of a layer that a running container swears is empty.
+translationKey: container-layers-secrets
 ---
 
 A container image is not a machine and not a filesystem. It is a stack of
