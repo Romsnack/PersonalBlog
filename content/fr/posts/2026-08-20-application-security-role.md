@@ -408,7 +408,7 @@ exigences d'achat.
 
 ### Mistral AI : compromettre le mainteneur
 
-On avance jusqu'aux 11 et 12 mai 2026. En cinq heures, un acteur malveillant
+Avançons jusqu'au 11 et 12 mai 2026. En cinq heures, un acteur malveillant
 suivi sous le nom de TeamPCP a publié **404 versions malveillantes sur environ
 172 paquets npm et 2 paquets PyPI** — la campagne que les chercheurs ont baptisée
 *Mini Shai-Hulud*, la quatrième vague de cette famille depuis septembre 2025.
@@ -548,9 +548,9 @@ Le travail sur la chaîne d'approvisionnement ne ressemble pas au reste du rôle
 Le code qu'il faut examiner pour vraiment durcir sa chaîne d'approvisionnement
 repose sur un principe dont on parle depuis des années : le **« Zero-Trust »**.
 
-Dans cette acception, on peut appliquer plusieurs actions sur la **chaîne
-d'approvisionnement** pour à la fois **atténuer** et **bloquer** ce que nous ou
-les équipes sécurité définissons comme *non sûr* :
+Sur la chaîne d'approvisionnement, plusieurs leviers permettent à la fois
+d'**atténuer** et de **bloquer** ce que l'équipe sécurité définit comme
+*non sûr* :
 
 - **Épinglez les versions exactes et commitez les lockfiles**, partout, y
   compris les actions de CI par SHA de commit plutôt que par tag. Un tag flottant

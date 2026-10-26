@@ -286,7 +286,7 @@ rien.** Quiconque a récupéré ce tag a toujours les octets, et les registres
 conservent les blobs adressés par empreinte même après le déplacement d'un tag.
 Réécrire l'image, c'est du nettoyage, pas de la remédiation.
 
-Effectuez la rotation du secret. Reconstruisez seulement ensuite.
+Effectuez la rotation du secret. Reconstruisez ensuite.
 
 Voilà tout : une image ne s'écrit qu'en ajout, `rm` ne fait que poser un
 marqueur, et trois commandes suffisent à savoir ce que vous avez réellement

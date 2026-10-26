@@ -2,38 +2,37 @@
 title: Votre lockfile ne sait pas de quel registre vient un nom
 date: 2026-10-26
 tags: [supply-chain, npm, security]
-summary: Comment un gestionnaire de paquets résout réellement un nom en paquet, pourquoi un nom de paquet interne sans équivalent réservé sur l'index public est un nom public, et une reproduction complète — deux vrais registres, un seul nom de paquet, la version la plus haute gagne — sans rien dans aucun des deux paquets à part une ligne qui dit d'où il vient.
+summary: Comment un gestionnaire de paquets résout réellement un nom, pourquoi un nom de paquet interne jamais réservé côté public reste un nom public comme un autre, et une reproduction complète avec deux vrais registres et un seul nom de paquet — où la version la plus haute l'emporte, sans rien dans les paquets à part une ligne qui annonce d'où ils viennent.
 translationKey: dependency-confusion
 slug: confusion-de-dependances
 ---
 
 En février 2021, le chercheur en sécurité Alex Birsan a publié [un article](https://medium.com/@alex.birsan/dependency-confusion-4a5d60fec610)
-décrivant comment il a fait exécuter du code à l'intérieur des réseaux
-d'Apple, Microsoft, Tesla, Uber et de dizaines d'autres entreprises — non pas
-en exploitant une vulnérabilité dans leur code, mais en publiant des paquets
-portant les bons *noms* sur les registres publics npm, PyPI et RubyGems.
-Certains de ces noms de paquets internes avaient fuité depuis des fichiers
-`package.json`, des messages Slack et des logs d'erreur récupérés sur
-l'internet ouvert. Il n'a jamais touché le moindre système interne. Les
-gestionnaires de paquets ont fait le reste tout seuls, parce que c'est
-exactement ce pour quoi ils sont conçus : trouver la version la plus récente
-d'un nom, où qu'elle se trouve.
+où il raconte comment il a fait tourner du code dans les réseaux d'Apple, de
+Microsoft, de Tesla, d'Uber et de dizaines d'autres entreprises. Pas en
+exploitant une faille dans leur code : en publiant, sur les registres publics
+npm, PyPI et RubyGems, des paquets portant les bons *noms*. Certains de ces
+noms internes avaient fuité — des `package.json`, des messages Slack, des
+logs d'erreur traînant quelque part sur l'internet ouvert — et Birsan n'a
+jamais eu besoin de toucher le moindre système interne : les gestionnaires de
+paquets ont fait tout le travail à sa place, parce que c'est exactement ce
+pour quoi ils sont conçus. Trouver la version la plus récente d'un nom, peu
+importe où elle se trouve.
 
-C'est toute l'attaque. Pas d'exploit, pas de mécanisme de livraison de
-malware, pas de phishing. Juste une collision de noms et un resolver qui fait
-correctement son travail.
+Et c'est toute l'attaque. Pas d'exploit, pas de malware à livrer, pas de
+phishing. Une simple collision de noms, et un resolver qui fait son travail
+correctement.
 
-## Ce que fait réellement la résolution
+## Ce que fait vraiment la résolution
 
-Un gestionnaire de paquets ne sait pas ce que « interne » veut dire. Quand
-vous écrivez `@acme/build-tools` dans un `package.json`, le seul travail de
-npm est : trouver quelque chose qui répond à ce nom, correspondant à cette
-plage de version, et installer la correspondance la plus récente. Par
-défaut, il interroge un seul registre — celui qui est configuré — et ce
-registre ne vérifie pas qui vous êtes. Si une entreprise ne dit jamais
-explicitement au resolver *ce nom ne vit qu'ici*, le resolver l'acceptera
-sans problème depuis n'importe où, que ce soit la première réponse ou celle
-qui gagne sur le numéro de version.
+Un gestionnaire de paquets ignore ce que « interne » veut dire. Écrivez
+`@acme/build-tools` dans un `package.json`, et npm n'a qu'une chose à faire :
+trouver quelque chose qui répond à ce nom et à cette plage de version, puis
+installer le plus récent. Par défaut, il n'interroge qu'un seul registre —
+celui configuré — et ce registre ne demande jamais qui vous êtes. Tant qu'une
+entreprise n'a pas explicitement dit au resolver *ce nom-là ne vit qu'ici*,
+celui-ci l'acceptera de n'importe où — la première réponse venue, ou celle
+dont le numéro de version est le plus haut.
 
 <figure class="diagram">
 <svg viewBox="0 0 720 220" role="img" aria-labelledby="fig1t">
@@ -71,23 +70,22 @@ qui gagne sur le numéro de version.
 <figcaption>Avec une règle de scope en place, le resolver ne demande même jamais à l'index public pour <code>@acme/*</code> — il n'y a pas de course à gagner puisqu'il n'y a pas de compétition.</figcaption>
 </figure>
 
-Sans cette règle, il n'y a qu'un seul registre configuré, et il répondra pour
-*n'importe quel* nom qu'on lui demande — y compris celui que vous pensiez
-garder privé.
+Enlevez cette règle, et il ne reste qu'un seul registre configuré — qui
+répondra pour *n'importe quel* nom qu'on lui demande, y compris celui que
+vous pensiez garder privé.
 
-## La reproduire, sans rien de dangereux dans aucun des deux paquets
+## La reproduire, sans rien mettre de dangereux dans les paquets
 
-Pour montrer le mécanisme plutôt que de simplement le décrire, voici une
-reproduction complète utilisant deux registres jetables sur ma propre
-machine : [Gitea](https://about.gitea.com/) avec son registre de paquets npm
-intégré (à la place du registre interne d'une entreprise) et une instance
-[Verdaccio](https://verdaccio.org/) locale (à la place du registre npm
-public — pour que rien dans cette démo ne touche jamais le vrai npm). Les
-deux paquets font exactement une chose à l'installation : afficher une ligne
-disant de quel registre ils viennent. Aucun accès fichier, aucun appel
-réseau, aucune charge utile d'aucune sorte — tout l'intérêt est la
-*résolution de nom*, pas ce qu'un paquet malveillant pourrait faire une fois
-qu'il a gagné, ce qui est un autre article.
+Plutôt que de décrire le mécanisme, autant le reproduire. Voici une
+démonstration complète avec deux registres jetables, tournant sur ma propre
+machine : [Gitea](https://about.gitea.com/) et son registre de paquets npm
+intégré, à la place d'un registre interne d'entreprise, et une instance
+[Verdaccio](https://verdaccio.org/) locale à la place du registre npm public
+— rien ici ne touche le vrai npm. Les deux paquets ne font qu'une chose à
+l'installation : afficher une ligne disant de quel registre ils viennent.
+Aucun accès fichier, aucun appel réseau, aucune charge utile. L'intérêt est
+dans la *résolution de nom*, pas dans ce qu'un paquet malveillant pourrait
+faire une fois qu'il a gagné — ça, ce sera pour un autre article.
 
 **Le paquet interne « légitime »**, publié sur Gitea en version `1.2.0` :
 
@@ -111,9 +109,9 @@ npm notice Publishing to http://localhost:3000/api/packages/acme/npm/ with tag l
 + @acme/build-tools@1.2.0
 ```
 
-**Le paquet « squatté »**, publié sur le substitut public sous exactement le
-même nom, avec un numéro de version plus élevé — la seule information qui
-décide de tout :
+**Le paquet « squatté »**, publié sur le registre public sous exactement le
+même nom, avec juste un numéro de version plus élevé — c'est la seule chose
+qui fait toute la différence :
 
 ```json
 {
@@ -136,8 +134,8 @@ npm notice Publishing to http://localhost:4873/ with tag latest and default acce
 ```
 
 Passons au côté vulnérable : un projet dont le `.npmrc` pointe vers un seul
-registre, sans aucune règle de scope pour `@acme` — ce qui correspond
-exactement à l'apparence d'un `.npmrc` par défaut, jamais configuré.
+registre, sans la moindre règle de scope pour `@acme`. C'est exactement à
+quoi ressemble un `.npmrc` par défaut, celui que personne n'a jamais touché.
 
 ```ini
 # .npmrc
@@ -188,14 +186,13 @@ added 1 package, and audited 2 packages in 468ms
 <figcaption>« * » signifie « n'importe quelle version » pour le resolver, et le seul candidat qu'il voit jamais est ce que renvoie cet unique registre. Le caractère interne du nom est une convention dont le resolver n'a jamais été informé.</figcaption>
 </figure>
 
-Cette ligne `postinstall` n'est pas cosmétique. npm, comme la plupart des
-gestionnaires de paquets, exécute automatiquement des scripts de cycle de
-vie à l'installation, avec les permissions de celui qui a lancé
-l'installation — ce qui, dans un pipeline CI, est généralement un compte de
-service ayant accès au code source, aux secrets et à un chemin de
-déploiement. Remplacez le `console.log` par n'importe quoi d'autre et la
-« démo » devient l'incident ; cette ligne fait tout le travail que faisaient
-les vrais paquets de Birsan.
+Cette ligne `postinstall` n'a rien d'anecdotique. npm, comme la plupart des
+gestionnaires de paquets, exécute automatiquement des scripts de cycle de vie
+à l'installation, avec les droits de celui qui a lancé la commande. En CI,
+c'est en général un compte de service qui a accès au code source, aux
+secrets et à un chemin de déploiement. Remplacez le `console.log` par
+n'importe quoi d'autre, et la « démo » devient l'incident : cette ligne fait
+tout le travail qu'ont fait les vrais paquets de Birsan.
 
 ## Le correctif : dire au resolver ce qu'on ne lui avait jamais dit
 
@@ -212,13 +209,13 @@ $ cat node_modules/@acme/build-tools/package.json | grep version
   "version": "1.2.0",
 ```
 
-Même projet, même plage `"*"`, mêmes deux registres contenant toujours un
-paquet appelé `@acme/build-tools` — mais la règle de scope fait que le
-registre public n'est même jamais interrogé pour ce nom. Il n'y a pas de
-course à perdre puisqu'il n'y a pas de course.
+Même projet, même plage `"*"`, les deux registres hébergent toujours chacun
+un `@acme/build-tools` — mais avec la règle de scope, le registre public
+n'est même plus interrogé pour ce nom. Rien à gagner d'un côté : il n'y a
+tout simplement plus de compétition.
 
-Cette unique ligne se généralise à travers les écosystèmes, même si le
-mécanisme exact diffère et que les pièges sont différents eux aussi :
+Le principe se transpose à tous les écosystèmes, mais le mécanisme change
+d'un gestionnaire à l'autre, et les pièges avec :
 
 - **npm** — mappez explicitement chaque scope interne (`@votreorg:registry=…`),
   pour chaque `.npmrc` qui compte : postes des développeurs, CI, et toute
@@ -235,27 +232,25 @@ mécanisme exact diffère et que les pièges sont différents eux aussi :
   placeholders. C'est la seule défense qui ne dépend pas du fait que tous les
   fichiers de config en aval soient corrects.
 - **Partout** — committez le lockfile et installez depuis lui (`npm ci`, pas
-  `npm install`, en CI) avec un registre qui vérifie les hachages
+  `npm install`, en CI), avec un registre qui vérifie les hachages
   d'intégrité. Un lockfile fixe une version *et* le hachage des octets
-  exacts qu'il a résolus la dernière fois, donc une substitution même nom /
-  même version sur un registre échoue malgré tout à la vérification de
-  hachage — bien que cela ne protège en rien la première installation qui a
-  créé le lockfile, ce qui explique pourquoi la règle de scope ou l'index
-  unique doit exister indépendamment.
+  exacts résolus la dernière fois : une substitution même nom / même version
+  échouera à cette vérification. Ça ne protège en revanche en rien la toute
+  première installation, celle qui crée le lockfile — raison de plus pour
+  que la règle de scope ou l'index unique existe en parallèle.
 
 ## Ce que les gens zappent
 
-Réserver les noms sur le registre public fait l'objet de beaucoup de
-discours et est rarement réellement fait, parce que cela suppose que
-quelqu'un énumère tous les noms de paquets internes que votre entreprise a
-jamais utilisés — y compris ceux dont plus personne ne se souvient, issus de
-projets livrés une fois et jamais retouchés depuis. Ce sont exactement les
-noms les plus susceptibles de se trouver encore dans un vieux
-`package-lock.json` versionné dans un fork public de quelque chose, en
-attente.
+Réserver les noms sur le registre public, tout le monde en parle, presque
+personne ne le fait vraiment. Il faudrait qu'une entreprise énumère tous les
+noms de paquets internes qu'elle a jamais utilisés — y compris ceux dont plus
+personne ne se souvient, hérités d'un projet livré une fois et jamais
+retouché depuis. Et ce sont justement ces noms-là, les plus susceptibles de
+traîner encore dans un vieux `package-lock.json`, versionné dans un fork
+public de quelque chose, qui n'attendent qu'à être repris.
 
-Le fait sous-jacent ne disparaît pas non plus en corrigeant la config : un
-nom de paquet interne ne signifie « interne » qu'à l'intérieur de la
-configuration de votre propre outillage. Pour n'importe quel registre, et
-pour quiconque peut lire cette configuration, ce n'est qu'une chaîne de
-caractères, et les chaînes de caractères sont libres d'être enregistrées.
+Corriger la config ne fait pas disparaître le problème de fond : un nom de
+paquet n'est « interne » que dans la configuration de votre propre
+outillage. Pour n'importe quel registre, et pour quiconque sait lire cette
+configuration, ce n'est jamais qu'une chaîne de caractères — et une chaîne de
+caractères, tout le monde peut la réserver.
