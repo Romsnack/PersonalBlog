@@ -135,7 +135,7 @@ The workflows have write access to a token and are therefore treated as code:
 - **No secrets.** Nothing here needs one: Pages authenticates with a short-lived
   OIDC token minted per deployment.
 
-CI builds with the newest 1.25 patch release rather than the exact version in
+CI builds with the newest 1.26 patch release rather than the exact version in
 `go.mod`, whose `go` directive is a minimum language version rather than a build
 pin. Standard-library security fixes therefore land without a commit.
 

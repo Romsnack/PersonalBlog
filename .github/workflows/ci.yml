@@ -29,9 +29,9 @@ concurrency:
 
 env:
   # go.mod's `go` directive is a minimum language version, not a build pin.
-  # CI builds with the newest 1.25 patch so that security fixes in the standard
+  # CI builds with the newest 1.26 patch so that security fixes in the standard
   # library land here without a commit.
-  GO_VERSION: "1.25.x"
+  GO_VERSION: "1.26.x"
   GOLANGCI_LINT_VERSION: "v2.13.0"
   ACTIONLINT_VERSION: "v1.7.12"
 
